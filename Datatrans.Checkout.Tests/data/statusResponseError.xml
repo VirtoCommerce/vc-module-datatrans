@@ -1,0 +1,15 @@
+<statusService version="3">
+    <body merchantId="111222" status="error">
+        <transaction>
+            <request>
+                <uppTransactionId>111111111111111</uppTransactionId>
+                <reqtype>STX</reqtype>
+            </request>
+        </transaction>
+        <error>
+            <errorCode>2022</errorCode>
+            <errorMessage>invalid value</errorMessage>
+            <errorDetail>merchantId</errorDetail>
+        </error>
+    </body>
+</statusService>

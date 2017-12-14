@@ -1,0 +1,18 @@
+<paymentService version="1">
+    <body merchantId="111222" status="accepted">
+        <transaction refno="484093" trxStatus="error">
+            <request>
+                <amount>101</amount>
+                <currency>USD</currency>
+                <uppTransactionId>111111111111111</uppTransactionId>
+                <reqtype>COA</reqtype>
+                <transtype>05</transtype>
+            </request>
+            <error>
+                <errorCode>-80</errorCode>
+                <errorMessage>UPP record not found</errorMessage>
+                <errorDetail/>
+            </error>
+        </transaction>
+    </body>
+</paymentService>

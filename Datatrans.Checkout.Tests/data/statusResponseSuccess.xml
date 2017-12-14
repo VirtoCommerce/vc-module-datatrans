@@ -1,0 +1,28 @@
+<statusService version="3">
+    <body merchantId="111222" status="accepted">
+        <transaction trxStatus="response">
+            <request>
+                <uppTransactionId>111111111111111</uppTransactionId>
+                <reqtype>STX</reqtype>
+            </request>
+            <response itemNr="1">
+                <responseCode>2</responseCode>
+                <responseMessage>Trx debit waiting for daily settlement process</responseMessage>
+                <refno>00400</refno>
+                <amount>24720</amount>
+                <currency>USD</currency>
+                <authorizationCode>9213</authorizationCode>
+                <pmethod>VIS</pmethod>
+                <uppTransactionId>111111111111111</uppTransactionId>
+                <maskedCC>424242xxxxxx4242</maskedCC>
+                <aliasCC></aliasCC>
+                <expm>12</expm>
+                <expy>18</expy>
+                <trxDate>20171212</trxDate>
+                <trxTime>222638</trxTime>
+                <trtype>05</trtype>
+                <settledAmount>24720</settledAmount>
+            </response>
+        </transaction>
+    </body>
+</statusService>

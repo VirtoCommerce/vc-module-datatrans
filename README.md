@@ -13,7 +13,7 @@ Installing the module:
 * **Payment action type** - Payment action type. Sale (immediate sale) or Settlement (Authorize/Capture)
 * **Payment Method** - Codes for enabled payment methods. Examples VIS - Visa, ECA - MasterCard, AMX - American Express, DIN - Diners, MPW - Masterpass, UATP - UATP.
 * **Language** - Purchase locale code used for creating payments.
-* **Process Payment action** - Action URl that is going to be hit in case of successful or error authorization. If not specified settings Datatrans UPP Administration dashboard are going to be used. Only absolute urls are allowed.
+* **Process Payment action** - Action URl that is going to be hit in case of successful or error authorization.
 
 Transaction is going to use order's currency.
 
