@@ -200,7 +200,19 @@ namespace Datatrans.Checkout.Managers
                 }
             }
             else if (status.EqualsInvariant("success"))
-            {              
+            {
+                var transactionInfo = GetTransactionStatus(context.Payment.OuterId);
+                context.Payment.Transactions.Add(new PaymentGatewayTransaction()
+                {
+                    Note = "Transaction Info",
+                    ResponseData = transactionInfo.ResponseContent,
+                    Status = transactionInfo.ResponseMessage,
+                    ResponseCode = transactionInfo.ResponseCode,
+                    ProcessError = transactionInfo.ErrorMessage,
+                    CurrencyCode = context.Order.Currency,
+                    Amount = context.Order.Sum
+                });
+
                 result.NewPaymentStatus = context.Payment.PaymentStatus = PaymentStatus.Authorized;
                 context.Payment.OuterId = result.OuterId = context.OuterId;
                 context.Payment.AuthorizedDate = DateTime.UtcNow;
@@ -236,14 +248,30 @@ namespace Datatrans.Checkout.Managers
                 Currency = context.Order.Currency
             };
 
+            var paymentTransaction = new PaymentGatewayTransaction
+            {
+                Note = "Settle Transaction",
+                CurrencyCode = context.Order.Currency,
+                Amount = context.Order.Sum
+            };
+            context.Payment.Transactions.Add(paymentTransaction);
+
             var result = new CaptureProcessPaymentResult();
             var datatransClient = _datatransClientFactory(ServerToServerApi);
             var settleResult = datatransClient.SettleTransaction(request);
             if (!settleResult.ErrorMessage.IsNullOrEmpty())
             {
                 result.ErrorMessage = settleResult.ErrorMessage;
+                paymentTransaction.ResponseData = settleResult.ResponseContent;
                 return result;
             }
+
+            var transactionInfo = GetTransactionStatus(context.Payment.OuterId);
+            paymentTransaction.Note = "Transaction Info after Settle Transaction";
+            paymentTransaction.Status = transactionInfo.ResponseMessage;
+            paymentTransaction.ResponseData = transactionInfo.ResponseContent;
+            paymentTransaction.ResponseCode = transactionInfo.ResponseCode;
+            paymentTransaction.ProcessError = transactionInfo.ErrorMessage;
 
             result.NewPaymentStatus = context.Payment.PaymentStatus = PaymentStatus.Paid;
             context.Payment.CapturedDate = DateTime.UtcNow;
@@ -252,6 +280,16 @@ namespace Datatrans.Checkout.Managers
             result.OuterId = context.Payment.OuterId;
 
             return result;
+        }
+
+        protected virtual DatatransTransactionResponse GetTransactionStatus(string transactionId)
+        {
+            var datatransClient = _datatransClientFactory(ServerToServerApi);
+            return datatransClient.GetTransactionStatus(new DatatransTransactionRequest()
+            {
+                MerchangId = MerchantId,
+                TransactionId = transactionId
+            });
         }
 
         public override RefundProcessPaymentResult RefundProcessPayment(RefundProcessPaymentEvaluationContext context)

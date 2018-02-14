@@ -42,7 +42,9 @@ namespace Datatrans.Checkout.DatatransClient
             }
 
             var paymentServiceResponse = response.ResponseContent.DeserializeXml<paymentService>();
-            return paymentServiceResponse.ToCoreModel();
+            var result = paymentServiceResponse.ToCoreModel();
+            result.ResponseContent = response.ResponseContent;
+            return result;
         }
 
         public coreModel.DatatransTransactionResponse GetTransactionStatus(DatatransTransactionRequest request)
@@ -59,7 +61,9 @@ namespace Datatrans.Checkout.DatatransClient
             }
 
             var statusServiceResponse = response.ResponseContent.DeserializeXml<statusService>();
-            return statusServiceResponse.ToCoreModel();
+            var result = statusServiceResponse.ToCoreModel();
+            result.ResponseContent = response.ResponseContent;
+            return result;
         }
 
         private ServiceResponse MakeDatatransCall(string endpoint, string sXml)
@@ -80,16 +84,13 @@ namespace Datatrans.Checkout.DatatransClient
 
                 var res = (HttpWebResponse)req.GetResponse();
 
-                string innerXml;
                 Stream responseStream = res.GetResponseStream();
                 using (var streamReader = new StreamReader(responseStream))
                 {
                     var xml = new XmlDocument();
                     xml.LoadXml(streamReader.ReadToEnd());
-                    innerXml = xml.InnerXml;
+                    result.ResponseContent = xml.InnerXml;
                 }
-
-                result.ResponseContent = innerXml;
             }
             catch (Exception ex)
             {

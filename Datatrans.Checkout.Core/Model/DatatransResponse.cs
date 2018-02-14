@@ -4,7 +4,7 @@
     {
         public string TransactionId { get; set; }
 
-        public string InnerXml { get; set; }
+        public string ResponseContent { get; set; }
 
         public string Status { get; set; }
 
