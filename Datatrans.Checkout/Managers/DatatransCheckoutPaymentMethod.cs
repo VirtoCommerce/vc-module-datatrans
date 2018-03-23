@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Specialized;
+using Datatrans.Checkout.Core.Event;
 using Datatrans.Checkout.Core.Model;
 using Datatrans.Checkout.Core.Services;
 using Datatrans.Checkout.Helpers;
+using VirtoCommerce.Domain.Order.Events;
 using VirtoCommerce.Domain.Order.Model;
 using VirtoCommerce.Domain.Payment.Model;
 using VirtoCommerce.Platform.Core.Common;
+using VirtoCommerce.Platform.Core.Events;
 
 namespace Datatrans.Checkout.Managers
 {
@@ -126,12 +129,15 @@ namespace Datatrans.Checkout.Managers
 
         private readonly IDatatransCheckoutService _datatransCheckoutService;
         private readonly Func<string, IDatatransClient> _datatransClientFactory;
+        private readonly IEventPublisher<DatatransBeforeCapturePaymentEvent> _settlemntEventPublisher;
 
-        public DatatransCheckoutPaymentMethod(IDatatransCheckoutService datatransCheckoutService, Func<string, IDatatransClient> datatransClientFactory) : 
+
+        public DatatransCheckoutPaymentMethod(IDatatransCheckoutService datatransCheckoutService, Func<string, IDatatransClient> datatransClientFactory, IEventPublisher<DatatransBeforeCapturePaymentEvent> settlemntEventPublisher) : 
             base("DatatransCheckout")
         {
             _datatransCheckoutService = datatransCheckoutService;
             _datatransClientFactory = datatransClientFactory;
+            _settlemntEventPublisher = settlemntEventPublisher;
         }
 
         public override ProcessPaymentResult ProcessPayment(ProcessPaymentEvaluationContext context)
@@ -239,13 +245,19 @@ namespace Datatrans.Checkout.Managers
             if (context.Order == null)
                 throw new ArgumentNullException("context.Order");
 
+            //var airlineData = new DatatransAirlineData();
+            var beforeSettlementEvent = new DatatransBeforeCapturePaymentEvent();
+            //beforeSettlementEvent.AirlineData = airlineData;
+            _settlemntEventPublisher.Publish(beforeSettlementEvent);
+
             var request = new DatatransSettlementRequest
             {
                 MerchangId = MerchantId,
                 TransactionId = context.Payment.OuterId,
                 ReferenceNumber = context.Order.Number,
                 Amount = context.Order.Sum.ToInt(),                
-                Currency = context.Order.Currency
+                Currency = context.Order.Currency,
+                AirlineData = beforeSettlementEvent.AirlineData
             };
 
             var paymentTransaction = new PaymentGatewayTransaction
