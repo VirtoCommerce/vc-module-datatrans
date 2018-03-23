@@ -1,16 +1,15 @@
 ﻿<?xml version="1.0"?>
 <package>
     <metadata>
-        <id>$id$</id>
-        <version>1.0.2</version>
-        <title>$title$</title>
+        <id>VirtoCommerce.DatatransModule.Core</id>
+        <version>1.0.3</version>
+        <title>VirtoCommerce.DatatransModule.Core</title>
         <authors>VirtoCommerce</authors>
         <owners>VirtoCommerce</owners>
-        <licenseUrl>https://github.com/VirtoCommerce/vc-module-datatrans/raw/master/LICENSE</licenseUrl>
         <projectUrl>https://github.com/VirtoCommerce/vc-module-datatrans</projectUrl>
         <iconUrl>https://github.com/VirtoCommerce/vc-module-datatrans/raw/master/NuGet/icon.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>Datatrans payment gateway implementation</description>
+        <description>VirtoCommerce Datatrans payment gateway implementation</description>
         <copyright>Copyright © VirtoCommerce 2011-2017</copyright>
     </metadata>
 </package>
