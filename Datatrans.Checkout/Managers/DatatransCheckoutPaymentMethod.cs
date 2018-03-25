@@ -130,14 +130,15 @@ namespace Datatrans.Checkout.Managers
         private readonly IDatatransCheckoutService _datatransCheckoutService;
         private readonly Func<string, IDatatransClient> _datatransClientFactory;
         private readonly IEventPublisher<DatatransBeforeCapturePaymentEvent> _settlemntEventPublisher;
+        private readonly IDatatransCapturePaymentService _capturePaymentService;
 
-
-        public DatatransCheckoutPaymentMethod(IDatatransCheckoutService datatransCheckoutService, Func<string, IDatatransClient> datatransClientFactory, IEventPublisher<DatatransBeforeCapturePaymentEvent> settlemntEventPublisher) : 
+        public DatatransCheckoutPaymentMethod(IDatatransCheckoutService datatransCheckoutService, Func<string, IDatatransClient> datatransClientFactory, IEventPublisher<DatatransBeforeCapturePaymentEvent> settlemntEventPublisher, IDatatransCapturePaymentService capturePaymentService) : 
             base("DatatransCheckout")
         {
             _datatransCheckoutService = datatransCheckoutService;
             _datatransClientFactory = datatransClientFactory;
             _settlemntEventPublisher = settlemntEventPublisher;
+            _capturePaymentService = capturePaymentService;
         }
 
         public override ProcessPaymentResult ProcessPayment(ProcessPaymentEvaluationContext context)
@@ -194,6 +195,7 @@ namespace Datatrans.Checkout.Managers
                 {
                     Payment = context.Payment,
                     Order = context.Order,
+                    Parameters = context.Parameters
                 });
 
                 if (captureResult.IsSuccess)
@@ -245,9 +247,10 @@ namespace Datatrans.Checkout.Managers
             if (context.Order == null)
                 throw new ArgumentNullException("context.Order");
 
-            //var airlineData = new DatatransAirlineData();
-            var beforeSettlementEvent = new DatatransBeforeCapturePaymentEvent();
-            //beforeSettlementEvent.AirlineData = airlineData;
+            var getAirlineContext = new GetAirlineDataContext(context.Order, context.Payment, context.Parameters);
+            var airlineData = _capturePaymentService.GetAirlineData(getAirlineContext);
+
+            var beforeSettlementEvent = new DatatransBeforeCapturePaymentEvent(context.Order, context.Payment, context.Parameters, airlineData);
             _settlemntEventPublisher.Publish(beforeSettlementEvent);
 
             var request = new DatatransSettlementRequest
@@ -257,7 +260,7 @@ namespace Datatrans.Checkout.Managers
                 ReferenceNumber = context.Order.Number,
                 Amount = context.Order.Sum.ToInt(),                
                 Currency = context.Order.Currency,
-                AirlineData = beforeSettlementEvent.AirlineData
+                AirlineData = airlineData
             };
 
             var paymentTransaction = new PaymentGatewayTransaction

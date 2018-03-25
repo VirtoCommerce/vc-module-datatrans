@@ -64,7 +64,9 @@
     <Compile Include="Model\DatatransSettlementResponse.cs" />
     <Compile Include="Model\DatatransTransactionRequest.cs" />
     <Compile Include="Model\DatatransTransactionResponse.cs" />
+    <Compile Include="Model\GetAirlineDataContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\IDatatransCapturePaymentService.cs" />
     <Compile Include="Services\IDatatransCheckoutService.cs" />
     <Compile Include="Services\IDatatransClient.cs" />
   </ItemGroup>

@@ -136,6 +136,7 @@
     <Compile Include="Module.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DatatransClient\Models\StatusServiceReference.cs" />
+    <Compile Include="Services\DatatransCapturePaymentServiceEmptyImp.cs" />
     <Compile Include="Services\DatatransCheckoutService.cs" />
     <Compile Include="DatatransClient\DatatransClient.cs" />
   </ItemGroup>

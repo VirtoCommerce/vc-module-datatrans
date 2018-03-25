@@ -27,6 +27,7 @@ namespace Datatrans.Checkout
             _container.RegisterType<IEventPublisher<DatatransBeforeCapturePaymentEvent>, EventPublisher<DatatransBeforeCapturePaymentEvent>>();
 
             _container.RegisterType<IDatatransCheckoutService, DatatransCheckoutService>();
+            _container.RegisterType<IDatatransCapturePaymentService, DatatransCapturePaymentServiceEmptyImp>();
 
             Func<string, IDatatransClient> datatransClientFactory = endpoint => new DatatransClient.DatatransClient(endpoint);
             _container.RegisterInstance(datatransClientFactory);
@@ -35,7 +36,8 @@ namespace Datatrans.Checkout
 
             Func<DatatransCheckoutPaymentMethod> datatransPaymentMethod = () =>
             {
-                var paymentMethod = new DatatransCheckoutPaymentMethod(_container.Resolve<IDatatransCheckoutService>(), _container.Resolve<Func<string, IDatatransClient>>(), _container.Resolve<IEventPublisher<DatatransBeforeCapturePaymentEvent>>());
+                var paymentMethod = new DatatransCheckoutPaymentMethod(_container.Resolve<IDatatransCheckoutService>(), _container.Resolve<Func<string, IDatatransClient>>(), _container.Resolve<IEventPublisher<DatatransBeforeCapturePaymentEvent>>(),
+                    _container.Resolve<IDatatransCapturePaymentService>());
                 paymentMethod.Name = "Datatrans Checkout Gateway";
                 paymentMethod.Description = "Datatrans Checkout payment gateway integration";
                 paymentMethod.LogoUrl = "https://raw.githubusercontent.com/VirtoCommerce/vc-module-datatrans/master/Datatrans.Checkout/Content/logo.png";

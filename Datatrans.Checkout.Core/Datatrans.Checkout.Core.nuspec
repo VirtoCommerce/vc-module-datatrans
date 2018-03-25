@@ -2,8 +2,11 @@
 <package>
     <metadata>
         <id>VirtoCommerce.DatatransModule.Core</id>
-        <version>1.0.3</version>
+        <version>1.0.4</version>
         <title>VirtoCommerce.DatatransModule.Core</title>
+		<dependencies>
+			<dependency id="VirtoCommerce.Domain" version="2.24.19" />
+		</dependencies>
         <authors>VirtoCommerce</authors>
         <owners>VirtoCommerce</owners>
         <projectUrl>https://github.com/VirtoCommerce/vc-module-datatrans</projectUrl>
