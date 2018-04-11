@@ -41,13 +41,13 @@ namespace Datatrans.Checkout.DatatransClient.Converters
                     new XElement("IssueDate", coreModel.AirlineData.IssueDate),
 
                     from ticket in coreModel.AirlineData.Tickets
-                    select new XElement("Ticket", new XAttribute("rn", ticket.Index),
+                    select new XElement("Ticket", new XAttribute("nr", ticket.Index),
                         new XElement("TicketNumber", ticket.TicketNumber),
                         new XElement("PassengerName", ticket.PassengerName),
                         new XElement("DescrCode", ticket.DescrCode),
 
                         from flight in ticket.Flights
-                        select new XElement("Flight", new XAttribute("rn", flight.Index),
+                        select new XElement("Flight", new XAttribute("nr", flight.Index),
                             new XElement("Origin", flight.Origin),
                             new XElement("Destination", flight.Destination),
                             new XElement("Carrier", flight.Carrier),
