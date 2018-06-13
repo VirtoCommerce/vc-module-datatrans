@@ -258,7 +258,7 @@ namespace Datatrans.Checkout.Managers
                 MerchangId = MerchantId,
                 TransactionId = context.Payment.OuterId,
                 ReferenceNumber = context.Order.Number,
-                Amount = context.Order.Sum.ToInt(),                
+                Amount = context.Payment.Sum.ToInt(),                
                 Currency = context.Order.Currency,
                 AirlineData = airlineData
             };
@@ -267,7 +267,7 @@ namespace Datatrans.Checkout.Managers
             {
                 Note = "Settle Transaction",
                 CurrencyCode = context.Order.Currency,
-                Amount = context.Order.Sum
+                Amount = context.Payment.Sum
             };
             context.Payment.Transactions.Add(paymentTransaction);
 
