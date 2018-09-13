@@ -4,7 +4,6 @@ using Datatrans.Checkout.Core.Event;
 using Datatrans.Checkout.Core.Model;
 using Datatrans.Checkout.Core.Services;
 using Datatrans.Checkout.Helpers;
-using VirtoCommerce.Domain.Order.Events;
 using VirtoCommerce.Domain.Order.Model;
 using VirtoCommerce.Domain.Payment.Model;
 using VirtoCommerce.Platform.Core.Common;
@@ -26,6 +25,8 @@ namespace Datatrans.Checkout.Managers
         private const string _transactionParamName = "uppTransactionId";
         private const string _paymentMethodCodeParamName = "paymentMethodCode";
         private const string _merchantIdParamName = "merchant";
+
+        private readonly string ErrorMessageTemplate = "code:{0};message:{1}";
 
         #region Settings        
 
@@ -231,7 +232,7 @@ namespace Datatrans.Checkout.Managers
             else
             {
                 var errorMessage = GetParamValue(context.Parameters, "errorMessage");
-                result.ErrorMessage = $"Order was not created. {errorMessage}";
+                result.ErrorMessage = string.Format(ErrorMessageTemplate, "undefined", errorMessage);
             }
 
             result.OrderId = context.Order.Id;
@@ -278,7 +279,7 @@ namespace Datatrans.Checkout.Managers
             var settleResult = datatransClient.SettleTransaction(request);
             if (!settleResult.ErrorMessage.IsNullOrEmpty())
             {
-                result.ErrorMessage = settleResult.ErrorMessage;
+                result.ErrorMessage = string.Format(ErrorMessageTemplate, settleResult.ResponseCode, settleResult.ResponseMessage);
                 paymentTransaction.ResponseData = settleResult.ResponseContent;
                 return result;
             }
