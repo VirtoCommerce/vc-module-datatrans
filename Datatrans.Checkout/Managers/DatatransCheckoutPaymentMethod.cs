@@ -219,8 +219,10 @@ namespace Datatrans.Checkout.Managers
                     ResponseCode = transactionInfo.ResponseCode,
                     ProcessError = transactionInfo.ErrorMessage,
                     CurrencyCode = context.Order.Currency,
-                    Amount = context.Order.Sum
-                });
+                    Amount = context.Order.Sum,
+                    IsProcessed = true,
+                    ProcessedDate = DateTime.UtcNow
+            });
 
                 result.NewPaymentStatus = context.Payment.PaymentStatus = PaymentStatus.Authorized;
                 context.Payment.OuterId = result.OuterId = context.OuterId;
@@ -288,6 +290,8 @@ namespace Datatrans.Checkout.Managers
             paymentTransaction.ResponseData = transactionInfo.ResponseContent;
             paymentTransaction.ResponseCode = transactionInfo.ResponseCode;
             paymentTransaction.ProcessError = transactionInfo.ErrorMessage;
+            paymentTransaction.IsProcessed = true;
+            paymentTransaction.ProcessedDate = DateTime.UtcNow;
 
             result.NewPaymentStatus = context.Payment.PaymentStatus = PaymentStatus.Paid;
             context.Payment.CapturedDate = DateTime.UtcNow;
