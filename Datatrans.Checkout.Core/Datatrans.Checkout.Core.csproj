@@ -58,6 +58,8 @@
     <Compile Include="Event\DatatransBeforeCapturePaymentEvent.cs" />
     <Compile Include="Model\DatatransAirlineData.cs" />
     <Compile Include="Model\DatatransCheckoutSettings.cs" />
+    <Compile Include="Model\DatatransRefundRequest.cs" />
+    <Compile Include="Model\DatatransRefundResponse.cs" />
     <Compile Include="Model\DatatransRequest.cs" />
     <Compile Include="Model\DatatransResponse.cs" />
     <Compile Include="Model\DatatransSettlementRequest.cs" />
