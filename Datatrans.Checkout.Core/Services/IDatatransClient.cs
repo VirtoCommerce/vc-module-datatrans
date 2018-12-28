@@ -9,5 +9,7 @@ namespace Datatrans.Checkout.Core.Services
         DatatransSettlementResponse SettleTransaction(DatatransSettlementRequest request);
 
         DatatransTransactionResponse GetTransactionStatus(DatatransTransactionRequest request);
+
+        DatatransRefundResponse Refund(DatatransRefundRequest request);
     }
 }
