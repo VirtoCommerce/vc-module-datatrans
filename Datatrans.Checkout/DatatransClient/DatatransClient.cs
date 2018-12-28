@@ -1,11 +1,11 @@
-﻿using System;
-using System.IO;
-using System.Net;
-using System.Xml;
-using Datatrans.Checkout.Core.Model;
+﻿using Datatrans.Checkout.Core.Model;
 using Datatrans.Checkout.Core.Services;
 using Datatrans.Checkout.DatatransClient.Converters;
 using Datatrans.Checkout.DatatransClient.Models;
+using System;
+using System.IO;
+using System.Net;
+using System.Xml;
 using VirtoCommerce.Platform.Core.Common;
 using coreModel = Datatrans.Checkout.Core.Model;
 
@@ -19,7 +19,7 @@ namespace Datatrans.Checkout.DatatransClient
 
         protected string StatusEndpoint => ServiceEndpoint + "/upp/jsp/XML_status.jsp";
 
-        protected string SettleEndpoint => ServiceEndpoint + "/upp/jsp/XML_processor.jsp";
+        protected string ProcessEndpoint => ServiceEndpoint + "/upp/jsp/XML_processor.jsp";
 
         #region Implementation of IDatatransClient
 
@@ -31,7 +31,7 @@ namespace Datatrans.Checkout.DatatransClient
         public coreModel.DatatransSettlementResponse SettleTransaction(DatatransSettlementRequest request)
         {
             var requestXml = request.ToDatatransRequest();
-            var response = MakeDatatransCall(SettleEndpoint, requestXml);
+            var response = MakeDatatransCall(ProcessEndpoint, requestXml);
 
             if (!response.ErrorMessage.IsNullOrEmpty())
             {
@@ -64,6 +64,24 @@ namespace Datatrans.Checkout.DatatransClient
             var result = statusServiceResponse.ToCoreModel();
             result.ResponseContent = response.ResponseContent;
             return result;
+        }
+
+        public coreModel.DatatransRefundResponse Refund(DatatransRefundRequest request)
+        {
+            var requestXml = request.ToDatatransRequest();
+            var response = MakeDatatransCall(ProcessEndpoint, requestXml);
+
+            if (!response.ErrorMessage.IsNullOrEmpty())
+            {
+                return new DatatransRefundResponse
+                {
+                    ErrorMessage = response.ErrorMessage
+                };
+            }
+
+            var datatransRefundResponse = response.ResponseContent.DeserializeXml<RefundResponse.paymentService>();
+
+            return datatransRefundResponse.ToCoreModel();
         }
 
         private ServiceResponse MakeDatatransCall(string endpoint, string sXml)
