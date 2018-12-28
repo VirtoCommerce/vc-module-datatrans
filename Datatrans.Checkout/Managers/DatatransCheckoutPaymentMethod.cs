@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Specialized;
-using Datatrans.Checkout.Core.Event;
+﻿using Datatrans.Checkout.Core.Event;
 using Datatrans.Checkout.Core.Model;
 using Datatrans.Checkout.Core.Services;
 using Datatrans.Checkout.Helpers;
+using System;
+using System.Collections.Specialized;
 using VirtoCommerce.Domain.Order.Model;
 using VirtoCommerce.Domain.Payment.Model;
 using VirtoCommerce.Platform.Core.Common;
@@ -74,7 +74,7 @@ namespace Datatrans.Checkout.Managers
         {
             get
             {
-                return GetSetting(_formActionUrlSetting);
+                return "http://localhost:2082/cart/externalpaymentcallback";
             }
         }
 
@@ -314,7 +314,62 @@ namespace Datatrans.Checkout.Managers
 
         public override RefundProcessPaymentResult RefundProcessPayment(RefundProcessPaymentEvaluationContext context)
         {
-            throw new NotImplementedException();
+            if (context.Payment == null)
+            {
+                throw new ArgumentNullException(nameof(context.Payment));
+            }
+
+            if (context.Order == null)
+            {
+                throw new ArgumentNullException(nameof(context.Order));
+            }
+
+            var result = new RefundProcessPaymentResult();
+
+            var payment = context.Payment;
+
+            var request = new DatatransRefundRequest
+            {
+                TransactionId =  payment.OuterId,
+                Amount = payment.Sum,
+                Currency = payment.Currency,
+                MerchantId = MerchantId,
+                RefNo = context.Order.Number
+            };
+
+            var transaction = new PaymentGatewayTransaction();
+
+            payment.Transactions.Add(transaction);
+
+            var datatransClient = _datatransClientFactory(ServerToServerApi);
+
+            var response = datatransClient.Refund(request);
+
+            transaction.ResponseData = response.ResponseData;
+
+            if (!response.ErrorMessage.IsNullOrEmpty())
+            {
+                transaction.ProcessError = response.ErrorMessage;
+
+                result.ErrorMessage = string.Format(ErrorMessageTemplate, response.ErrorCode, response.ErrorMessage, response.ErrorDetail);
+                result.IsSuccess = false;
+                return result;
+            }
+
+            payment.OuterId = response.TransactionId;
+
+            transaction.Amount = response.Amount;
+            transaction.CurrencyCode = response.Currency;
+            transaction.IsProcessed = true;
+            transaction.Note = "Datatrans refund";
+            transaction.ResponseCode = response.ResponseCode;
+            transaction.Status = response.ResponseMessage;
+            transaction.ProcessedDate = DateTime.Now;
+
+            result.NewPaymentStatus = PaymentStatus.Refunded;
+            result.IsSuccess = true;
+
+            return result;
         }
 
         public override VoidProcessPaymentResult VoidProcessPayment(VoidProcessPaymentEvaluationContext context)
