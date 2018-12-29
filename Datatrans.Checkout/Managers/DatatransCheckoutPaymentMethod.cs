@@ -377,7 +377,7 @@ namespace Datatrans.Checkout.Managers
                 return result;
             }
 
-            payment.OuterId = response.TransactionId;
+            //payment.OuterId = response.TransactionId;
 
             transaction.Amount = IsPartialRefund(context.Parameters) ? GetPartialRefundAmount(context.Parameters) : payment.Sum;
             transaction.CurrencyCode = payment.Currency;

@@ -133,6 +133,7 @@
     <Compile Include="DatatransClient\Models\RefundResponse.cs" />
     <Compile Include="DatatransClient\Models\ServiceResponse.cs" />
     <Compile Include="DatatransClient\Models\SettlementServiceReference.cs" />
+    <Compile Include="Extensions\DecimalExtensions.cs" />
     <Compile Include="Helpers\RoundingHelper.cs" />
     <Compile Include="Managers\DatatransCheckoutPaymentMethod.cs" />
     <Compile Include="Module.cs" />

@@ -5,6 +5,7 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Globalization;
 using VirtoCommerce.Domain.Order.Model;
 using VirtoCommerce.Domain.Payment.Model;
 using VirtoCommerce.Platform.Core.Events;
@@ -22,18 +23,18 @@ namespace Datatrans.Checkout.Tests
             {
                 Order = new CustomerOrder
                 {
-                    Number = ""
+                    Number = "",
+                    Currency = "USD"
                 },
                 Payment =  new PaymentIn
                 {
                     OuterId = "",
                     Sum = 0M,
-                    Currency = "",
                     Transactions = new List<PaymentGatewayTransaction>()
                 },
                 Parameters = new NameValueCollection
                 {
-                    {"RefundAmount", ""}
+                    {"RefundAmount", (-15.33M).ToString(CultureInfo.InvariantCulture)}
                 }
             };
 
