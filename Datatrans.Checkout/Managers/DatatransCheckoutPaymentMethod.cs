@@ -1,6 +1,7 @@
 ﻿using Datatrans.Checkout.Core.Event;
 using Datatrans.Checkout.Core.Model;
 using Datatrans.Checkout.Core.Services;
+using Datatrans.Checkout.Extensions;
 using Datatrans.Checkout.Helpers;
 using System;
 using System.Collections.Specialized;
@@ -329,6 +330,21 @@ namespace Datatrans.Checkout.Managers
                 throw new ArgumentNullException(nameof(context.Order));
             }
 
+            if (context.Payment.OuterId == null)
+            {
+                throw new ArgumentNullException(nameof(context.Payment.OuterId));
+            }
+
+            if (context.Order.Currency == null)
+            {
+                throw new ArgumentNullException(nameof(context.Order.Currency));
+            }
+
+            if (context.Order.Number == null)
+            {
+                throw new ArgumentNullException(nameof(context.Payment.OuterId));
+            }
+
             var result = new RefundProcessPaymentResult();
 
             var payment = context.Payment;
@@ -336,19 +352,19 @@ namespace Datatrans.Checkout.Managers
             var request = new DatatransRefundRequest
             {
                 TransactionId =  payment.OuterId,
-                Amount = IsPartialRefund(context.Parameters) ? GetPartialRefundAmount(context.Parameters).ToInt() : payment.Sum.ToInt(),
-                Currency = payment.Currency,
+                Amount = IsPartialRefund(context.Parameters) ? GetPartialRefundAmount(context.Parameters).NormalizeDecimal().ToInt() : payment.Sum.NormalizeDecimal().ToInt(),
+                Currency = context.Order.Currency,
                 MerchantId = MerchantId,
                 ReferenceNumber = context.Order.Number
             };
 
-            var transaction = new PaymentGatewayTransaction();
-
-            payment.Transactions.Add(transaction);
-
             var datatransClient = _datatransClientFactory(ServerToServerApi);
 
             var response = datatransClient.Refund(request);
+
+            var transaction = new PaymentGatewayTransaction();
+
+            payment.Transactions.Add(transaction);
 
             transaction.ResponseData = response.ResponseData;
 
