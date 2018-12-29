@@ -125,7 +125,7 @@
     <Compile Include="..\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="DatatransClient\Converters\RefundRequestConverter.cs" />
+    <Compile Include="DatatransClient\Converters\RefundConverter.cs" />
     <Compile Include="DatatransClient\Converters\SettlementServiceRequestConverter.cs" />
     <Compile Include="DatatransClient\Converters\SettlementServiceResponseConverter.cs" />
     <Compile Include="DatatransClient\Converters\StatusServiceRequestConverter.cs" />

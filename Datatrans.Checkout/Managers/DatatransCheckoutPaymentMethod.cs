@@ -74,7 +74,7 @@ namespace Datatrans.Checkout.Managers
         {
             get
             {
-                return "http://localhost:2082/cart/externalpaymentcallback";
+                return GetSetting(_formActionUrlSetting);
             }
         }
 
@@ -258,7 +258,7 @@ namespace Datatrans.Checkout.Managers
 
             var request = new DatatransSettlementRequest
             {
-                MerchangId = MerchantId,
+                MerchantId = MerchantId,
                 TransactionId = context.Payment.OuterId,
                 ReferenceNumber = context.Order.Number,
                 Amount = context.Payment.Sum.ToInt(),                
@@ -307,13 +307,18 @@ namespace Datatrans.Checkout.Managers
             var datatransClient = _datatransClientFactory(ServerToServerApi);
             return datatransClient.GetTransactionStatus(new DatatransTransactionRequest()
             {
-                MerchangId = MerchantId,
+                MerchantId = MerchantId,
                 TransactionId = transactionId
             });
         }
 
         public override RefundProcessPaymentResult RefundProcessPayment(RefundProcessPaymentEvaluationContext context)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (context.Payment == null)
             {
                 throw new ArgumentNullException(nameof(context.Payment));
@@ -331,10 +336,10 @@ namespace Datatrans.Checkout.Managers
             var request = new DatatransRefundRequest
             {
                 TransactionId =  payment.OuterId,
-                Amount = payment.Sum,
+                Amount = IsPartialRefund(context.Parameters) ? GetPartialRefundAmount(context.Parameters).ToInt() : payment.Sum.ToInt(),
                 Currency = payment.Currency,
                 MerchantId = MerchantId,
-                RefNo = context.Order.Number
+                ReferenceNumber = context.Order.Number
             };
 
             var transaction = new PaymentGatewayTransaction();
@@ -358,18 +363,33 @@ namespace Datatrans.Checkout.Managers
 
             payment.OuterId = response.TransactionId;
 
-            transaction.Amount = response.Amount;
-            transaction.CurrencyCode = response.Currency;
+            transaction.Amount = IsPartialRefund(context.Parameters) ? GetPartialRefundAmount(context.Parameters) : payment.Sum;
+            transaction.CurrencyCode = payment.Currency;
             transaction.IsProcessed = true;
             transaction.Note = "Datatrans refund";
             transaction.ResponseCode = response.ResponseCode;
             transaction.Status = response.ResponseMessage;
             transaction.ProcessedDate = DateTime.Now;
 
-            result.NewPaymentStatus = PaymentStatus.Refunded;
+            result.NewPaymentStatus = IsPartialRefund(context.Parameters) ? PaymentStatus.PartiallyRefunded : PaymentStatus.Refunded;
             result.IsSuccess = true;
 
             return result;
+        }
+
+        private decimal GetPartialRefundAmount(NameValueCollection parameters)
+        {
+            if (!IsPartialRefund(parameters))
+            {
+                throw new ArgumentException();
+            }
+
+            return decimal.Parse(parameters["RefundAmount"]);
+        }
+
+        private bool IsPartialRefund(NameValueCollection parameters)
+        {
+            return parameters?["RefundAmount"] != null;
         }
 
         public override VoidProcessPaymentResult VoidProcessPayment(VoidProcessPaymentEvaluationContext context)

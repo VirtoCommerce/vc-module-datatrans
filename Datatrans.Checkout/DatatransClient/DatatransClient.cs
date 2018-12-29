@@ -81,7 +81,11 @@ namespace Datatrans.Checkout.DatatransClient
 
             var datatransRefundResponse = response.ResponseContent.DeserializeXml<RefundResponse.paymentService>();
 
-            return datatransRefundResponse.ToCoreModel();
+            var result = datatransRefundResponse.ToCoreModel();
+
+            result.ResponseData = response.ResponseContent;
+
+            return result;
         }
 
         private ServiceResponse MakeDatatransCall(string endpoint, string sXml)

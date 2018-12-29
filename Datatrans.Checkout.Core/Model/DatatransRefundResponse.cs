@@ -4,10 +4,6 @@
     {
         public string TransactionId { get; set; }
 
-        public string Currency { get; set; }
-
-        public decimal Amount { get; set; }
-
         public string ErrorCode { get; set; }
 
         public string ErrorMessage { get; set; }

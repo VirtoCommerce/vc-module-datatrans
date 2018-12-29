@@ -56,6 +56,8 @@
 
             private paymentServiceBodyTransaction[] transactionField;
 
+            private paymentServiceBodyTransactionError[] errorField;
+
             private string merchantIdField;
 
             private string statusField;
@@ -71,6 +73,20 @@
                 set
                 {
                     this.transactionField = value;
+                }
+            }
+
+            /// <remarks/>
+            [System.Xml.Serialization.XmlElementAttribute("error", Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+            public paymentServiceBodyTransactionError[] error
+            {
+                get
+                {
+                    return this.errorField;
+                }
+                set
+                {
+                    this.errorField = value;
                 }
             }
 
@@ -116,6 +132,8 @@
 
             private paymentServiceBodyTransactionResponse[] responseField;
 
+            private paymentServiceBodyTransactionError[] errorField;
+
             private string refnoField;
 
             private string trxStatusField;
@@ -145,6 +163,20 @@
                 set
                 {
                     this.responseField = value;
+                }
+            }
+
+            /// <remarks/>
+            [System.Xml.Serialization.XmlElementAttribute("error", Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+            public paymentServiceBodyTransactionError[] error
+            {
+                get
+                {
+                    return this.errorField;
+                }
+                set
+                {
+                    this.errorField = value;
                 }
             }
 

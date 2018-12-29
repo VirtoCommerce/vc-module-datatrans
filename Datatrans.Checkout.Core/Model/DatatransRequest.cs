@@ -2,7 +2,7 @@
 {
     public abstract class DatatransRequest 
     {
-        public string MerchangId { get; set; }
+        public string MerchantId { get; set; }
 
         public string TransactionId { get; set; }
 

@@ -10,7 +10,7 @@ namespace Datatrans.Checkout.DatatransClient.Converters
         {
             XElement requestXml =
                 new XElement("paymentService", new XAttribute("version", coreModel.ServiceVersion),
-                    new XElement("body", new XAttribute("merchantId", coreModel.MerchangId),
+                    new XElement("body", new XAttribute("merchantId", coreModel.MerchantId),
                         new XElement("transaction", new XAttribute("refno", coreModel.ReferenceNumber),
                             new XElement("request",
                                 new XElement("amount", coreModel.Amount),

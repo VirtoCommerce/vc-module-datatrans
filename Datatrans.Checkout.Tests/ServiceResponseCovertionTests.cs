@@ -1,6 +1,6 @@
-﻿using System.IO;
-using Datatrans.Checkout.DatatransClient.Converters;
+﻿using Datatrans.Checkout.DatatransClient.Converters;
 using Datatrans.Checkout.DatatransClient.Models;
+using System.IO;
 using VirtoCommerce.Platform.Core.Common;
 using Xunit;
 
@@ -74,6 +74,44 @@ namespace Datatrans.Checkout.Tests
             Assert.Equal("2022", target.ErrorCode);
             Assert.Equal("invalid value", target.ErrorMessage);
             Assert.Equal("merchantId", target.ErrorDetail);
+        }
+
+        [Fact]
+        public void TestRefundResponseSuccessDeserializing()
+        {
+            var response = File.ReadAllText(@"../../data/refundResponseSuccess.xml");
+
+            var deserializedXml = response.DeserializeXml<RefundResponse.paymentService>();
+
+            var refundResponse = deserializedXml.ToCoreModel();
+
+            Assert.NotEmpty(refundResponse.ResponseCode);
+            Assert.NotEmpty(refundResponse.ResponseMessage);
+            Assert.NotEmpty(refundResponse.TransactionId);
+
+            Assert.Null(refundResponse.ResponseData);
+            Assert.Null(refundResponse.ErrorMessage);
+            Assert.Null(refundResponse.ErrorCode);
+            Assert.Null(refundResponse.ErrorDetail);
+        }
+
+        [Fact]
+        public void TestRefundResponseErrorDeserializing()
+        {
+            var response = File.ReadAllText(@"../../data/refundResponseError.xml");
+
+            var deserializedXml = response.DeserializeXml<RefundResponse.paymentService>();
+
+            var refundResponse = deserializedXml.ToCoreModel();
+
+            Assert.NotEmpty(refundResponse.ErrorMessage);
+            Assert.NotEmpty(refundResponse.ErrorCode);
+            Assert.NotEmpty(refundResponse.ErrorDetail);
+
+            Assert.Null(refundResponse.ResponseData);
+            Assert.Null(refundResponse.ResponseCode);
+            Assert.Null(refundResponse.ResponseMessage);
+            Assert.Null(refundResponse.TransactionId);
         }
     }
 }
