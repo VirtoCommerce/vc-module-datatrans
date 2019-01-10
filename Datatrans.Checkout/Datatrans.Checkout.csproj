@@ -142,6 +142,8 @@
     <Compile Include="Services\DatatransCapturePaymentServiceEmptyImp.cs" />
     <Compile Include="Services\DatatransCheckoutService.cs" />
     <Compile Include="DatatransClient\DatatransClient.cs" />
+    <Compile Include="Services\ISignProvider.cs" />
+    <Compile Include="Services\SignProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Datatrans.Checkout.Core\Datatrans.Checkout.Core.csproj">
