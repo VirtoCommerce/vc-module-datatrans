@@ -28,7 +28,7 @@
                 <description>Merchant Id</description>
             </setting>
             <setting>
-                <name>Datatrans.Checkout.Sign</name>
+                <name>Datatrans.Checkout.HMACHex</name>
                 <valueType>string</valueType>
                 <title>HMAC key</title>
                 <description>Your HMAC key in hexadecimal format</description>
