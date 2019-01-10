@@ -21,9 +21,9 @@ namespace Datatrans.Checkout.Tests
             var refno = "testRefno";
 
             var sign = signProvider.Sign(merchantId, amount, currency, refno);
-            var expectedString = CreateSignature(GetStringBytesArray(testSignatureKey), $"{merchantId}{amount.ToString()}{currency}{refno}");
+            var expectedSign = CreateSignature(GetStringBytesArray(testSignatureKey), $"{merchantId}{amount.ToString()}{currency}{refno}");
 
-            Assert.Equal(expectedString, sign);
+            Assert.Equal(expectedSign, sign);
         }
 
         private SignProvider CreateSignProvider(string hex)
