@@ -91,6 +91,7 @@
     <Compile Include="DatatransTests.cs" />
     <Compile Include="ServiceResponseCovertionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SignProviderTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Datatrans.Checkout.Core\Datatrans.Checkout.Core.csproj">
