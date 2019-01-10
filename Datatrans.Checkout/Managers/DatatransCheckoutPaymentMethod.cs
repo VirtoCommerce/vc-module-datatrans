@@ -27,65 +27,30 @@ namespace Datatrans.Checkout.Managers
         private const string _paymentMethodCodeParamName = "paymentMethodCode";
         private const string _merchantIdParamName = "merchant";
 
+        private readonly string _serverToServerUsername = "Datatrans.Checkout.ServerToServer.Username";
+        private readonly string _serverToServerPassword = "Datatrans.Checkout.ServerToServer.Password";
+
         private readonly string ErrorMessageTemplate = "code:{0};message:{1}";
 
         #region Settings        
 
-        private string ApiMode
-        {
-            get
-            {
-                return GetSetting(_datatransModeStoreSetting);
-            }
-        }
+        private string ApiMode => GetSetting(_datatransModeStoreSetting);
 
-        private string MerchantId
-        {
-            get
-            {                
-                return GetSetting(_merchantIdSetting);
-            }
-        }
+        private string MerchantId => GetSetting(_merchantIdSetting);
 
-        private string Sign
-        {
-            get
-            {
-                return GetSetting(_signSetting);
-            }
-        }
+        private string Sign => GetSetting(_signSetting);
 
-        private string PaymentAction
-        {
-            get
-            {
-                return GetSetting(_paymentActionTypeSetting);
-            }
-        }
+        private string PaymentAction => GetSetting(_paymentActionTypeSetting);
 
-        private string PaymentMethod
-        {
-            get
-            {
-                return GetSetting(_paymentMethodSetting);
-            }
-        }
+        private string PaymentMethod => GetSetting(_paymentMethodSetting);
 
-        private string FormActionUrl
-        {
-            get
-            {
-                return GetSetting(_formActionUrlSetting);
-            }
-        }
+        private string FormActionUrl => GetSetting(_formActionUrlSetting);
 
-        private string Language
-        {
-            get
-            {
-                return GetSetting(_languageSetting);
-            }
-        }
+        private string Language => GetSetting(_languageSetting);
+
+        private string Username => GetSetting(_serverToServerUsername);
+
+        private string Password => GetSetting(_serverToServerPassword);
 
         public bool IsSale
         {
@@ -130,11 +95,11 @@ namespace Datatrans.Checkout.Managers
         }
 
         private readonly IDatatransCheckoutService _datatransCheckoutService;
-        private readonly Func<string, IDatatransClient> _datatransClientFactory;
+        private readonly Func<string, string, string, IDatatransClient> _datatransClientFactory;
         private readonly IEventPublisher<DatatransBeforeCapturePaymentEvent> _settlemntEventPublisher;
         private readonly IDatatransCapturePaymentService _capturePaymentService;
 
-        public DatatransCheckoutPaymentMethod(IDatatransCheckoutService datatransCheckoutService, Func<string, IDatatransClient> datatransClientFactory, IEventPublisher<DatatransBeforeCapturePaymentEvent> settlemntEventPublisher, IDatatransCapturePaymentService capturePaymentService) : 
+        public DatatransCheckoutPaymentMethod(IDatatransCheckoutService datatransCheckoutService, Func<string, string, string, IDatatransClient> datatransClientFactory, IEventPublisher<DatatransBeforeCapturePaymentEvent> settlemntEventPublisher, IDatatransCapturePaymentService capturePaymentService) : 
             base("DatatransCheckout")
         {
             _datatransCheckoutService = datatransCheckoutService;
@@ -276,7 +241,7 @@ namespace Datatrans.Checkout.Managers
             context.Payment.Transactions.Add(paymentTransaction);
 
             var result = new CaptureProcessPaymentResult();
-            var datatransClient = _datatransClientFactory(ServerToServerApi);
+            var datatransClient = CreateDatatransClient(ServerToServerApi);
             var settleResult = datatransClient.SettleTransaction(request);
             if (!settleResult.ErrorMessage.IsNullOrEmpty())
             {
@@ -305,7 +270,7 @@ namespace Datatrans.Checkout.Managers
 
         protected virtual DatatransTransactionResponse GetTransactionStatus(string transactionId)
         {
-            var datatransClient = _datatransClientFactory(ServerToServerApi);
+            var datatransClient = CreateDatatransClient(ServerToServerApi);
             return datatransClient.GetTransactionStatus(new DatatransTransactionRequest()
             {
                 MerchantId = MerchantId,
@@ -358,7 +323,7 @@ namespace Datatrans.Checkout.Managers
                 ReferenceNumber = context.Order.Number
             };
 
-            var datatransClient = _datatransClientFactory(ServerToServerApi);
+            var datatransClient = CreateDatatransClient(ServerToServerApi);
 
             var response = datatransClient.Refund(request);
 
@@ -376,8 +341,6 @@ namespace Datatrans.Checkout.Managers
                 result.IsSuccess = false;
                 return result;
             }
-
-            //payment.OuterId = response.TransactionId;
 
             transaction.Amount = IsPartialRefund(context.Parameters) ? GetPartialRefundAmount(context.Parameters) : payment.Sum;
             transaction.CurrencyCode = payment.Currency;
@@ -406,6 +369,11 @@ namespace Datatrans.Checkout.Managers
         private bool IsPartialRefund(NameValueCollection parameters)
         {
             return parameters?["RefundAmount"] != null;
+        }
+
+        private IDatatransClient CreateDatatransClient(string endpoint)
+        {
+            return _datatransClientFactory(endpoint, Username, Password);
         }
 
         public override VoidProcessPaymentResult VoidProcessPayment(VoidProcessPaymentEvaluationContext context)

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <module>
     <id>Datatrans.Checkout</id>
-    <version>1.0.8</version>
+    <version>1.0.15</version>
     <platformVersion>2.13.19</platformVersion>
     <dependencies>
         <dependency id="VirtoCommerce.Core" version="2.24.19" />
@@ -30,9 +30,21 @@
             <setting>
                 <name>Datatrans.Checkout.Sign</name>
                 <valueType>string</valueType>
-                <title>Sign</title>
-                <description>Sign</description>
+                <title>HMAC key</title>
+                <description>Your HMAC key in hexadecimal format</description>
             </setting>
+            <setting>
+              <name>Datatrans.Checkout.ServerToServer.Username</name>
+              <valueType>string</valueType>
+              <title>Cross server authorization username</title>
+              <description>Server to server requests protection</description>
+            </setting>
+          <setting>
+            <name>Datatrans.Checkout.ServerToServer.Password</name>
+            <valueType>password</valueType>
+            <title>Cross server authorization password</title>
+            <description>Server to server requests protection</description>
+          </setting>
         </group>
         <group name="Payment methods|Datatrans|General">
             <setting>
