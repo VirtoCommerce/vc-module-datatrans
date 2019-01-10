@@ -3,6 +3,7 @@ using Datatrans.Checkout.Core.Model;
 using Datatrans.Checkout.Core.Services;
 using Datatrans.Checkout.Extensions;
 using Datatrans.Checkout.Helpers;
+using Datatrans.Checkout.Services;
 using System;
 using System.Collections.Specialized;
 using VirtoCommerce.Domain.Order.Model;
@@ -15,7 +16,7 @@ namespace Datatrans.Checkout.Managers
     public class DatatransCheckoutPaymentMethod : PaymentMethod
     {
         private const string _merchantIdSetting = "Datatrans.Checkout.MerchantId";
-        private const string _signSetting = "Datatrans.Checkout.Sign";
+        private const string _HMACSetting = "Datatrans.Checkout.HMACHex";
 
         private const string _datatransModeStoreSetting = "Datatrans.Checkout.Mode";
         private const string _paymentActionTypeSetting = "Datatrans.Checkout.PaymentActionType";
@@ -27,8 +28,8 @@ namespace Datatrans.Checkout.Managers
         private const string _paymentMethodCodeParamName = "paymentMethodCode";
         private const string _merchantIdParamName = "merchant";
 
-        private readonly string _serverToServerUsername = "Datatrans.Checkout.ServerToServer.Username";
-        private readonly string _serverToServerPassword = "Datatrans.Checkout.ServerToServer.Password";
+        private const string _serverToServerUsername = "Datatrans.Checkout.ServerToServer.Username";
+        private const string _serverToServerPassword = "Datatrans.Checkout.ServerToServer.Password";
 
         private readonly string ErrorMessageTemplate = "code:{0};message:{1}";
 
@@ -38,7 +39,7 @@ namespace Datatrans.Checkout.Managers
 
         private string MerchantId => GetSetting(_merchantIdSetting);
 
-        private string Sign => GetSetting(_signSetting);
+        private string HMACHex => GetSetting(_HMACSetting);
 
         private string PaymentAction => GetSetting(_paymentActionTypeSetting);
 
@@ -84,28 +85,31 @@ namespace Datatrans.Checkout.Managers
 
         #endregion
 
-        public override PaymentMethodType PaymentMethodType
-        {
-            get { return PaymentMethodType.PreparedForm; }
-        }
+        public override PaymentMethodType PaymentMethodType => PaymentMethodType.PreparedForm;
 
-        public override PaymentMethodGroupType PaymentMethodGroupType
-        {
-            get { return PaymentMethodGroupType.Alternative; }
-        }
+        public override PaymentMethodGroupType PaymentMethodGroupType => PaymentMethodGroupType.Alternative;
 
         private readonly IDatatransCheckoutService _datatransCheckoutService;
         private readonly Func<string, string, string, IDatatransClient> _datatransClientFactory;
         private readonly IEventPublisher<DatatransBeforeCapturePaymentEvent> _settlemntEventPublisher;
         private readonly IDatatransCapturePaymentService _capturePaymentService;
+        private readonly Func<string, ISignProvider> _signProviderFactory;
 
-        public DatatransCheckoutPaymentMethod(IDatatransCheckoutService datatransCheckoutService, Func<string, string, string, IDatatransClient> datatransClientFactory, IEventPublisher<DatatransBeforeCapturePaymentEvent> settlemntEventPublisher, IDatatransCapturePaymentService capturePaymentService) : 
-            base("DatatransCheckout")
+        private ISignProvider SignProvider => _signProviderFactory(HMACHex);
+
+        public DatatransCheckoutPaymentMethod(
+            IDatatransCheckoutService datatransCheckoutService, 
+            Func<string, string, string, IDatatransClient> datatransClientFactory, 
+            IEventPublisher<DatatransBeforeCapturePaymentEvent> settlemntEventPublisher, 
+            IDatatransCapturePaymentService capturePaymentService, 
+            Func<string, ISignProvider> signProviderFactory) 
+                :base("DatatransCheckout")
         {
             _datatransCheckoutService = datatransCheckoutService;
             _datatransClientFactory = datatransClientFactory;
             _settlemntEventPublisher = settlemntEventPublisher;
             _capturePaymentService = capturePaymentService;
+            _signProviderFactory = signProviderFactory;
         }
 
         public override ProcessPaymentResult ProcessPayment(ProcessPaymentEvaluationContext context)
@@ -129,7 +133,7 @@ namespace Datatrans.Checkout.Managers
                 PaymentAction = PaymentAction,
                 PaymentMethod = PaymentMethod,
                 ReferenceNumber = context.Order.Number,
-                Sign = Sign,
+                Sign = SignProvider.Sign(MerchantId, context.Order.Sum.ToInt(), context.Order.Currency, context.Order.Number),
                 Amount = context.Order.Sum.ToInt(),
                 PurchaseCurrency = context.Order.Currency,
                 FrontendApi = FrontendApi,
@@ -138,11 +142,13 @@ namespace Datatrans.Checkout.Managers
                 PaymentMethodCodeParamName = _paymentMethodCodeParamName
             });
 
-            var result = new ProcessPaymentResult();
-            result.IsSuccess = true;
-            result.NewPaymentStatus = context.Payment.PaymentStatus = PaymentStatus.Pending;
-            result.HtmlForm = formContent;
-            result.OuterId = null;
+            var result = new ProcessPaymentResult
+            {
+                IsSuccess = true,
+                NewPaymentStatus = context.Payment.PaymentStatus = PaymentStatus.Pending,
+                HtmlForm = formContent,
+                OuterId = null
+            };
 
             return result;
         }

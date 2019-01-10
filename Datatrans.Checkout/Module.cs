@@ -31,12 +31,19 @@ namespace Datatrans.Checkout
             IDatatransClient DatatransClientFactory(string endpoint, string username, string password) => new DatatransClient.DatatransClient(endpoint, username, password);
             _container.RegisterInstance((Func<string, string, string, IDatatransClient>) DatatransClientFactory);
 
+            ISignProvider SignProviderFactory(string hmacKey) => new SignProvider(hmacKey);
+            _container.RegisterInstance((Func<string, ISignProvider>) SignProviderFactory);
+
             var settingsManager = ServiceLocator.Current.GetInstance<ISettingsManager>();
 
             Func<DatatransCheckoutPaymentMethod> datatransPaymentMethod = () =>
             {
-                var paymentMethod = new DatatransCheckoutPaymentMethod(_container.Resolve<IDatatransCheckoutService>(), _container.Resolve<Func<string, string, string, IDatatransClient>>(), _container.Resolve<IEventPublisher<DatatransBeforeCapturePaymentEvent>>(),
-                    _container.Resolve<IDatatransCapturePaymentService>());
+                var paymentMethod = new DatatransCheckoutPaymentMethod(
+                    _container.Resolve<IDatatransCheckoutService>(), 
+                    _container.Resolve<Func<string, string, string, IDatatransClient>>(), 
+                    _container.Resolve<IEventPublisher<DatatransBeforeCapturePaymentEvent>>(),
+                    _container.Resolve<IDatatransCapturePaymentService>(),
+                    _container.Resolve<Func<string, ISignProvider>>());
                 paymentMethod.Name = "Datatrans Checkout Gateway";
                 paymentMethod.Description = "Datatrans Checkout payment gateway integration";
                 paymentMethod.LogoUrl = "https://raw.githubusercontent.com/VirtoCommerce/vc-module-datatrans/master/Datatrans.Checkout/Content/logo.png";
@@ -46,6 +53,8 @@ namespace Datatrans.Checkout
 
             var paymentMethodsService = _container.Resolve<IPaymentMethodsService>();
             paymentMethodsService.RegisterPaymentMethod(datatransPaymentMethod);
+
+            _container.RegisterType<ISignProvider, SignProvider>();
         }
     }
 }
