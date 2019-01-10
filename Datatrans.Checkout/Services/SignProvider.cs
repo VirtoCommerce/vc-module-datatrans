@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 
+[assembly: InternalsVisibleTo("Datatrans.Checkout.Tests")]
 namespace Datatrans.Checkout.Services
 {
     internal class SignProvider : ISignProvider
