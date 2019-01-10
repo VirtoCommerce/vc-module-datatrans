@@ -1,6 +1,7 @@
 ﻿using Datatrans.Checkout.Core.Event;
 using Datatrans.Checkout.Core.Services;
 using Datatrans.Checkout.Managers;
+using Datatrans.Checkout.Services;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -38,7 +39,11 @@ namespace Datatrans.Checkout.Tests
                 }
             };
 
-            var datatransClient = CreateDatatransClient("https://api.sandbox.datatrans.com");
+            var endpoint = "http://api.sandbox.datatrans.com";
+            var username = "";
+            var password = "";
+
+            var datatransClient = CreateDatatransClient(endpoint, username, password);
 
             var datatransClientFactory = CreateDatatransClientFactory(datatransClient);
 
@@ -50,7 +55,8 @@ namespace Datatrans.Checkout.Tests
                 datatransCheckoutService.Object, 
                 datatransClientFactory, 
                 eventPublisher.Object, 
-                datatransCapturePaymentService.Object);
+                datatransCapturePaymentService.Object,
+                CreateSignProvider());
 
             datatransCheckoutPaymentMethod.Settings = new List<SettingEntry>
             {
@@ -69,9 +75,9 @@ namespace Datatrans.Checkout.Tests
             return new Mock<IDatatransCheckoutService>();
         }
 
-        private IDatatransClient CreateDatatransClient(string serviceEndpoint)
+        private IDatatransClient CreateDatatransClient(string serviceEndpoint, string username, string password)
         {
-            return new DatatransClient.DatatransClient(serviceEndpoint);
+            return new DatatransClient.DatatransClient(serviceEndpoint, username, password);
         }
 
         private Mock<IEventPublisher<DatatransBeforeCapturePaymentEvent>> CreateEventPublisher()
@@ -84,22 +90,29 @@ namespace Datatrans.Checkout.Tests
             return new Mock<IDatatransCapturePaymentService>();
         }
 
-        private Func<string, IDatatransClient> CreateDatatransClientFactory(IDatatransClient datatransClient)
+        private Func<string, string, string, IDatatransClient> CreateDatatransClientFactory(IDatatransClient datatransClient)
         {
-            return s => datatransClient;
+            return (s, s1, s2) => datatransClient;
+        }
+
+        private Func<string, ISignProvider> CreateSignProvider()
+        {
+            return s => new Mock<ISignProvider>().Object;
         }
 
         private DatatransCheckoutPaymentMethod CreateDatatransCheckoutPaymentMethod(
             IDatatransCheckoutService datatransCheckoutService, 
-            Func<string, IDatatransClient> datatransClientFactory,
+            Func<string, string, string, IDatatransClient> datatransClientFactory,
             IEventPublisher<DatatransBeforeCapturePaymentEvent> eventPublisher,
-            IDatatransCapturePaymentService datatransCapturePaymentService)
+            IDatatransCapturePaymentService datatransCapturePaymentService,
+            Func<string, ISignProvider> signProviderFactory)
         {
             return new DatatransCheckoutPaymentMethod(
                 datatransCheckoutService, 
                 datatransClientFactory, 
                 eventPublisher,
-                datatransCapturePaymentService);
+                datatransCapturePaymentService,
+                signProviderFactory);
         }
     }
 }
