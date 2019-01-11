@@ -38,7 +38,7 @@ namespace Datatrans.Checkout.Services
 
             var stringToBeSigned = string.Join(string.Empty, aliasCC, merchantId, amount.ToString(), currency, refno);
 
-            var toSign = new ASCIIEncoding().GetBytes(stringToBeSigned);
+            var toSign = Encoding.ASCII.GetBytes(stringToBeSigned);
 
             using (var hmac = new HMACSHA256(Hmac))
             {

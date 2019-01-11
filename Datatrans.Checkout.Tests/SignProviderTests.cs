@@ -40,7 +40,7 @@ namespace Datatrans.Checkout.Tests
 
         private byte[] GetStringBytesArray(string source)
         {
-            return new ASCIIEncoding().GetBytes(source);
+            return Encoding.ASCII.GetBytes(source);
         }
 
         private string CreateSignature(byte[] bytes, string strToSign)
