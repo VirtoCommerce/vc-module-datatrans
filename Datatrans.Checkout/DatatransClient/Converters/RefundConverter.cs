@@ -17,7 +17,8 @@ namespace Datatrans.Checkout.DatatransClient.Converters
                                 new XElement("amount", request.Amount),
                                 new XElement("currency", request.Currency),
                                 new XElement("uppTransactionId", request.TransactionId),
-                                new XElement("transtype", request.TransType)
+                                new XElement("transtype", request.TransType),
+                                new XElement("sign", request.Sign)
                             )
                         )
                     )
