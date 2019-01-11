@@ -7,5 +7,7 @@
         public string TransactionId { get; set; }
 
         public string ServiceVersion { get; set; }
+
+        public string Sign { get; set; }
     }
 }
