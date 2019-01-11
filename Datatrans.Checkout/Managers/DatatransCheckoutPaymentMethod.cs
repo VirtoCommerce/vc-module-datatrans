@@ -17,6 +17,7 @@ namespace Datatrans.Checkout.Managers
     {
         private const string _merchantIdSetting = "Datatrans.Checkout.MerchantId";
         private const string _HMACSetting = "Datatrans.Checkout.HMACHex";
+        private const string _HMAC2Setting = "Datatrans.Checkout.HMACHEXSign2";
 
         private const string _datatransModeStoreSetting = "Datatrans.Checkout.Mode";
         private const string _paymentActionTypeSetting = "Datatrans.Checkout.PaymentActionType";
@@ -40,6 +41,16 @@ namespace Datatrans.Checkout.Managers
         private string MerchantId => GetSetting(_merchantIdSetting);
 
         private string HMACHex => GetSetting(_HMACSetting);
+
+        private string HMACHex2
+        {
+            get
+            {
+                var setting = GetSetting(_HMAC2Setting);
+
+                return string.IsNullOrEmpty(setting) ? null : setting;
+            }
+        }
 
         private string PaymentAction => GetSetting(_paymentActionTypeSetting);
 
@@ -95,8 +106,6 @@ namespace Datatrans.Checkout.Managers
         private readonly IDatatransCapturePaymentService _capturePaymentService;
         private readonly Func<string, ISignProvider> _signProviderFactory;
 
-        private ISignProvider SignProvider => _signProviderFactory(HMACHex);
-
         public DatatransCheckoutPaymentMethod(
             IDatatransCheckoutService datatransCheckoutService, 
             Func<string, string, string, IDatatransClient> datatransClientFactory, 
@@ -133,7 +142,7 @@ namespace Datatrans.Checkout.Managers
                 PaymentAction = PaymentAction,
                 PaymentMethod = PaymentMethod,
                 ReferenceNumber = context.Order.Number,
-                Sign = SignProvider.Sign(MerchantId, context.Order.Sum.ToInt(), context.Order.Currency, context.Order.Number),
+                Sign = GetSignProvider(HMACHex).Sign(MerchantId, context.Order.Sum.ToInt(), context.Order.Currency, context.Order.Number),
                 Amount = context.Order.Sum.ToInt(),
                 PurchaseCurrency = context.Order.Currency,
                 FrontendApi = FrontendApi,
@@ -235,7 +244,8 @@ namespace Datatrans.Checkout.Managers
                 ReferenceNumber = context.Order.Number,
                 Amount = context.Payment.Sum.ToInt(),                
                 Currency = context.Order.Currency,
-                AirlineData = airlineData
+                AirlineData = airlineData,
+                Sign = GetSignProvider(HMACHex).Sign(MerchantId, context.Payment.Sum.ToInt(), context.Order.Currency, context.Order.Number)
             };
 
             var paymentTransaction = new PaymentGatewayTransaction
@@ -323,10 +333,11 @@ namespace Datatrans.Checkout.Managers
             var request = new DatatransRefundRequest
             {
                 TransactionId =  payment.OuterId,
-                Amount = IsPartialRefund(context.Parameters) ? GetPartialRefundAmount(context.Parameters).NormalizeDecimal().ToInt() : payment.Sum.NormalizeDecimal().ToInt(),
+                Amount = GetAmountForRefund(context, payment),
                 Currency = context.Order.Currency,
                 MerchantId = MerchantId,
-                ReferenceNumber = context.Order.Number
+                ReferenceNumber = context.Order.Number,
+                Sign = GetSignProvider(HMACHex).Sign(MerchantId, GetAmountForRefund(context, payment), context.Order.Currency, context.Order.Number)
             };
 
             var datatransClient = CreateDatatransClient(ServerToServerApi);
@@ -348,7 +359,7 @@ namespace Datatrans.Checkout.Managers
                 return result;
             }
 
-            transaction.Amount = IsPartialRefund(context.Parameters) ? GetPartialRefundAmount(context.Parameters) : payment.Sum;
+            transaction.Amount = GetAmountForRefund(context, payment);
             transaction.CurrencyCode = payment.Currency;
             transaction.IsProcessed = true;
             transaction.Note = "Datatrans refund";
@@ -360,6 +371,13 @@ namespace Datatrans.Checkout.Managers
             result.IsSuccess = true;
 
             return result;
+        }
+
+        private int GetAmountForRefund(RefundProcessPaymentEvaluationContext context, PaymentIn payment)
+        {
+            return IsPartialRefund(context.Parameters)
+                ? GetPartialRefundAmount(context.Parameters).NormalizeDecimal().ToInt()
+                : payment.Sum.NormalizeDecimal().ToInt();
         }
 
         private decimal GetPartialRefundAmount(NameValueCollection parameters)
@@ -398,9 +416,21 @@ namespace Datatrans.Checkout.Managers
             var transactionId = GetParamValue(queryString, _transactionParamName);
             var paymentMethodName = GetParamValue(queryString, _paymentMethodCodeParamName);
 
+            var sign2 = GetParamValue(queryString, "sign2");
+            var validSignature = true;
+
+            if (!string.IsNullOrEmpty(sign2))
+            {
+                var merchantId = GetParamValue(queryString, "merchantId");
+                var amount = GetParamValue(queryString, "amount");
+                var currency = GetParamValue(queryString, "currency");
+
+                validSignature = GetSignProvider(HMACHex2 ?? HMACHex).ValidateSignature(sign2, merchantId, int.Parse(amount), currency, transactionId);
+            }
+
             return new ValidatePostProcessRequestResult
             {
-                IsSuccess = !string.IsNullOrEmpty(transactionId) && paymentMethodName.EqualsInvariant(Code),
+                IsSuccess = validSignature && !string.IsNullOrEmpty(transactionId) && paymentMethodName.EqualsInvariant(Code),
                 OuterId = transactionId
             };
         }
@@ -413,6 +443,11 @@ namespace Datatrans.Checkout.Managers
             }
 
             return queryString.Get(paramName);
+        }
+
+        private ISignProvider GetSignProvider(string hmacKey)
+        {
+            return _signProviderFactory(hmacKey);
         }
     }
 }

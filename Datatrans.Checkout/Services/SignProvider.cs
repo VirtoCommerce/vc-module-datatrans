@@ -9,13 +9,18 @@ namespace Datatrans.Checkout.Services
 {
     internal class SignProvider : ISignProvider
     {
-        private string _hmacHex { get; }
+        private readonly string _hmacHex;
 
         private byte[] Hmac => _hmac ?? (_hmac = HexDecode(_hmacHex));
         private byte[] _hmac;
 
         public SignProvider(string hmacKey)
         {
+            if (string.IsNullOrEmpty(hmacKey))
+            {
+                throw new ArgumentNullException(nameof(hmacKey));
+            }
+
             _hmacHex = hmacKey;
         }
 
@@ -36,9 +41,23 @@ namespace Datatrans.Checkout.Services
                 throw new ArgumentNullException(nameof(refno));
             }
 
-            var stringToBeSigned = string.Join(string.Empty, aliasCC, merchantId, amount.ToString(), currency, refno);
+            var targetData = string.Join(string.Empty, aliasCC, merchantId, amount.ToString(), currency, refno);
 
-            var toSign = Encoding.ASCII.GetBytes(stringToBeSigned);
+            return GenerateSignature(targetData);
+        }
+
+        public bool ValidateSignature(string signature, string merchantId, int amount, string currency, string transactionId)
+        {
+            var targetData = string.Join(string.Empty, merchantId, amount.ToString(), currency, transactionId);
+
+            var expectedSignature = GenerateSignature(targetData);
+
+            return expectedSignature == signature;
+        }
+
+        private string GenerateSignature(string source)
+        {
+            var toSign = Encoding.ASCII.GetBytes(source);
 
             using (var hmac = new HMACSHA256(Hmac))
             {

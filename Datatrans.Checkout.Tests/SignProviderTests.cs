@@ -26,6 +26,25 @@ namespace Datatrans.Checkout.Tests
             Assert.Equal(expectedSign, sign);
         }
 
+        [Fact]
+        public void TestValidation()
+        {
+            var testSignatureKey = "testSignatureKey";
+
+            var signProvider = CreateSignProvider(GetHexadecimalString(testSignatureKey));
+
+            var merchantId = "testMerchant";
+            var amount = 123;
+            var currency = "USD";
+            var transactionId = "testTransactionId";
+
+            var sourceSign = CreateSignature(GetStringBytesArray(testSignatureKey),$"{merchantId}{amount.ToString()}{currency}{transactionId}");
+
+            var result = signProvider.ValidateSignature(sourceSign, merchantId, amount, currency, transactionId);
+
+            Assert.True(result);
+        }
+
         private SignProvider CreateSignProvider(string hex)
         {
             return new SignProvider(hex);

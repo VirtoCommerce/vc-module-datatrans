@@ -34,6 +34,12 @@
                 <description>Your HMAC key in hexadecimal format</description>
             </setting>
             <setting>
+                <name>Datatrans.Checkout.HMACHEXSign2</name>
+                <valueType>string</valueType>
+                <title>HMAC key for sign2 (optional)</title>
+                <description>Your HMAC key in hexadecimal format</description>
+            </setting>
+            <setting>
               <name>Datatrans.Checkout.ServerToServer.Username</name>
               <valueType>string</valueType>
               <title>Cross server authorization username</title>
