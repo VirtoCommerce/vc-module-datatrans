@@ -88,8 +88,10 @@
     <Compile Include="..\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="DatatransTests.cs" />
     <Compile Include="ServiceResponseCovertionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SignProviderTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Datatrans.Checkout.Core\Datatrans.Checkout.Core.csproj">
@@ -109,6 +111,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="data\refundResponseError.xml" />
+    <Content Include="data\refundResponseSuccess.xml" />
     <Content Include="data\settleResponseError.xml" />
     <Content Include="data\settleResponseSuccess.xml" />
     <Content Include="data\statusResponseError.xml" />
