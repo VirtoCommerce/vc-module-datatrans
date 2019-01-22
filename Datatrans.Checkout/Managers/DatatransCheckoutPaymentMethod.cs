@@ -311,17 +311,17 @@ namespace Datatrans.Checkout.Managers
                 throw new ArgumentNullException(nameof(context.Order));
             }
 
-            if (context.Payment.OuterId == null)
+            if (string.IsNullOrEmpty(context.Payment.OuterId))
             {
                 throw new ArgumentNullException(nameof(context.Payment.OuterId));
             }
 
-            if (context.Order.Currency == null)
+            if (string.IsNullOrEmpty(context.Order.Currency))
             {
                 throw new ArgumentNullException(nameof(context.Order.Currency));
             }
 
-            if (context.Order.Number == null)
+            if (string.IsNullOrEmpty(context.Order.Number))
             {
                 throw new ArgumentNullException(nameof(context.Payment.OuterId));
             }
@@ -333,11 +333,11 @@ namespace Datatrans.Checkout.Managers
             var request = new DatatransRefundRequest
             {
                 TransactionId =  payment.OuterId,
-                Amount = GetAmountForRefund(context, payment),
+                Amount = GetNormalizedAmountForRefund(context, payment),
                 Currency = context.Order.Currency,
                 MerchantId = MerchantId,
                 ReferenceNumber = context.Order.Number,
-                Sign = GetSignProvider(HMACHex).Sign(MerchantId, GetAmountForRefund(context, payment), context.Order.Currency, context.Order.Number)
+                Sign = GetSignProvider(HMACHex).Sign(MerchantId, GetNormalizedAmountForRefund(context, payment), context.Order.Currency, context.Order.Number)
             };
 
             var datatransClient = CreateDatatransClient(ServerToServerApi);
@@ -373,11 +373,16 @@ namespace Datatrans.Checkout.Managers
             return result;
         }
 
-        private int GetAmountForRefund(RefundProcessPaymentEvaluationContext context, PaymentIn payment)
+        private decimal GetAmountForRefund(RefundProcessPaymentEvaluationContext context, PaymentIn payment)
         {
             return IsPartialRefund(context.Parameters)
-                ? GetPartialRefundAmount(context.Parameters).NormalizeDecimal().ToInt()
-                : payment.Sum.NormalizeDecimal().ToInt();
+                ? GetPartialRefundAmount(context.Parameters)
+                : payment.Sum;
+        }
+
+        private int GetNormalizedAmountForRefund(RefundProcessPaymentEvaluationContext context, PaymentIn payment)
+        {
+            return GetAmountForRefund(context, payment).NormalizeDecimal().ToInt();
         }
 
         private decimal GetPartialRefundAmount(NameValueCollection parameters)

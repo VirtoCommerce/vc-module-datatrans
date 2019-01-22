@@ -53,8 +53,6 @@ namespace Datatrans.Checkout
 
             var paymentMethodsService = _container.Resolve<IPaymentMethodsService>();
             paymentMethodsService.RegisterPaymentMethod(datatransPaymentMethod);
-
-            _container.RegisterType<ISignProvider, SignProvider>();
         }
     }
 }
