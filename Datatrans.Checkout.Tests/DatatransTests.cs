@@ -35,13 +35,14 @@ namespace Datatrans.Checkout.Tests
                 },
                 Parameters = new NameValueCollection
                 {
-                    {"RefundAmount", (-15.33M).ToString(CultureInfo.InvariantCulture)}
+                    {"RefundAmount", (-5.33M).ToString(CultureInfo.InvariantCulture)}
                 }
             };
 
-            var endpoint = "http://api.sandbox.datatrans.com";
+            var endpoint = "https://api.sandbox.datatrans.com";
             var username = "";
             var password = "";
+            var hmacKey = "";
 
             var datatransClient = CreateDatatransClient(endpoint, username, password);
 
@@ -56,7 +57,7 @@ namespace Datatrans.Checkout.Tests
                 datatransClientFactory, 
                 eventPublisher.Object, 
                 datatransCapturePaymentService.Object,
-                CreateSignProvider());
+                CreateSignProvider(hmacKey));
 
             datatransCheckoutPaymentMethod.Settings = new List<SettingEntry>
             {
@@ -95,9 +96,9 @@ namespace Datatrans.Checkout.Tests
             return (s, s1, s2) => datatransClient;
         }
 
-        private Func<string, ISignProvider> CreateSignProvider()
+        private Func<string, ISignProvider> CreateSignProvider(string hmacKey)
         {
-            return s => new Mock<ISignProvider>().Object;
+            return s => new SignProvider(hmacKey);
         }
 
         private DatatransCheckoutPaymentMethod CreateDatatransCheckoutPaymentMethod(
