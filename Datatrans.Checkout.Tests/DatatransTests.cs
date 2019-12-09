@@ -1,5 +1,4 @@
-﻿using Datatrans.Checkout.Core.Event;
-using Datatrans.Checkout.Core.Services;
+﻿using Datatrans.Checkout.Core.Services;
 using Datatrans.Checkout.Managers;
 using Datatrans.Checkout.Services;
 using Moq;
@@ -9,7 +8,6 @@ using System.Collections.Specialized;
 using System.Globalization;
 using VirtoCommerce.Domain.Order.Model;
 using VirtoCommerce.Domain.Payment.Model;
-using VirtoCommerce.Platform.Core.Events;
 using VirtoCommerce.Platform.Core.Settings;
 using Xunit;
 
@@ -49,13 +47,11 @@ namespace Datatrans.Checkout.Tests
             var datatransClientFactory = CreateDatatransClientFactory(datatransClient);
 
             var datatransCheckoutService = CreateDatatransCheckoutService();
-            var eventPublisher = CreateEventPublisher();
             var datatransCapturePaymentService = CreateDatatransCapturePaymentService();
 
             var datatransCheckoutPaymentMethod = CreateDatatransCheckoutPaymentMethod(
                 datatransCheckoutService.Object, 
-                datatransClientFactory, 
-                eventPublisher.Object, 
+                datatransClientFactory,
                 datatransCapturePaymentService.Object,
                 CreateSignProvider(hmacKey));
 
@@ -81,11 +77,6 @@ namespace Datatrans.Checkout.Tests
             return new DatatransClient.DatatransClient(serviceEndpoint, username, password);
         }
 
-        private Mock<IEventPublisher<DatatransBeforeCapturePaymentEvent>> CreateEventPublisher()
-        {
-            return new Mock<IEventPublisher<DatatransBeforeCapturePaymentEvent>>();
-        }
-
         private Mock<IDatatransCapturePaymentService> CreateDatatransCapturePaymentService()
         {
             return new Mock<IDatatransCapturePaymentService>();
@@ -104,14 +95,12 @@ namespace Datatrans.Checkout.Tests
         private DatatransCheckoutPaymentMethod CreateDatatransCheckoutPaymentMethod(
             IDatatransCheckoutService datatransCheckoutService, 
             Func<string, string, string, IDatatransClient> datatransClientFactory,
-            IEventPublisher<DatatransBeforeCapturePaymentEvent> eventPublisher,
             IDatatransCapturePaymentService datatransCapturePaymentService,
             Func<string, ISignProvider> signProviderFactory)
         {
             return new DatatransCheckoutPaymentMethod(
                 datatransCheckoutService, 
-                datatransClientFactory, 
-                eventPublisher,
+                datatransClientFactory,
                 datatransCapturePaymentService,
                 signProviderFactory);
         }

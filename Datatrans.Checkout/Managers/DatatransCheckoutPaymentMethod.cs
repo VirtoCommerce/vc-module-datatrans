@@ -1,15 +1,14 @@
-﻿using Datatrans.Checkout.Core.Event;
-using Datatrans.Checkout.Core.Model;
+﻿using Datatrans.Checkout.Core.Model;
 using Datatrans.Checkout.Core.Services;
 using Datatrans.Checkout.Extensions;
 using Datatrans.Checkout.Helpers;
 using Datatrans.Checkout.Services;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Specialized;
 using VirtoCommerce.Domain.Order.Model;
 using VirtoCommerce.Domain.Payment.Model;
 using VirtoCommerce.Platform.Core.Common;
-using VirtoCommerce.Platform.Core.Events;
 
 namespace Datatrans.Checkout.Managers
 {
@@ -31,8 +30,6 @@ namespace Datatrans.Checkout.Managers
 
         private const string _serverToServerUsername = "Datatrans.Checkout.ServerToServer.Username";
         private const string _serverToServerPassword = "Datatrans.Checkout.ServerToServer.Password";
-
-        private readonly string ErrorMessageTemplate = "code:{0};message:{1}";
 
         #region Settings        
 
@@ -102,21 +99,18 @@ namespace Datatrans.Checkout.Managers
 
         private readonly IDatatransCheckoutService _datatransCheckoutService;
         private readonly Func<string, string, string, IDatatransClient> _datatransClientFactory;
-        private readonly IEventPublisher<DatatransBeforeCapturePaymentEvent> _settlemntEventPublisher;
         private readonly IDatatransCapturePaymentService _capturePaymentService;
         private readonly Func<string, ISignProvider> _signProviderFactory;
 
         public DatatransCheckoutPaymentMethod(
             IDatatransCheckoutService datatransCheckoutService, 
             Func<string, string, string, IDatatransClient> datatransClientFactory, 
-            IEventPublisher<DatatransBeforeCapturePaymentEvent> settlemntEventPublisher, 
             IDatatransCapturePaymentService capturePaymentService, 
             Func<string, ISignProvider> signProviderFactory) 
                 :base("DatatransCheckout")
         {
             _datatransCheckoutService = datatransCheckoutService;
             _datatransClientFactory = datatransClientFactory;
-            _settlemntEventPublisher = settlemntEventPublisher;
             _capturePaymentService = capturePaymentService;
             _signProviderFactory = signProviderFactory;
         }
@@ -170,6 +164,17 @@ namespace Datatrans.Checkout.Managers
             var responseMessage = GetParamValue(context.Parameters, "responseMessage");
             var transactionId = GetParamValue(context.Parameters, _transactionParamName);
 
+            bool.TryParse(GetSetting("Datatrans.Checkout.ErrorTesting"), out var errorTestingMode);
+
+            if (errorTestingMode && IsTest)
+            {
+                status = "error";
+
+                int.TryParse(GetSetting("Datatrans.Checkout.ErrorCode"), out var errorCode);
+                context.Parameters["errorCode"] = errorCode.ToString();
+                context.Parameters["errorMessage"] = "Error testing mode";
+            }
+
             context.Payment.OuterId = context.OuterId;
             if (status.EqualsInvariant("success") && IsSale)
             {
@@ -212,8 +217,10 @@ namespace Datatrans.Checkout.Managers
             }
             else
             {
+                const int defaultErrorCode = -1000;
                 var errorMessage = GetParamValue(context.Parameters, "errorMessage");
-                result.ErrorMessage = string.Format(ErrorMessageTemplate, "undefined", errorMessage);
+                var errorCode = int.TryParse(GetParamValue(context.Parameters, "errorCode"), out var parsedErrorCode) ? parsedErrorCode : defaultErrorCode;
+                result.ErrorMessage = GetErrorMessage(errorCode, errorMessage);
             }
 
             result.OrderId = context.Order.Id;
@@ -233,9 +240,6 @@ namespace Datatrans.Checkout.Managers
 
             var getAirlineContext = new GetAirlineDataContext(context.Order, context.Payment, context.Parameters);
             var airlineData = _capturePaymentService.GetAirlineData(getAirlineContext);
-
-            var beforeSettlementEvent = new DatatransBeforeCapturePaymentEvent(context.Order, context.Payment, context.Parameters, airlineData);
-            _settlemntEventPublisher.Publish(beforeSettlementEvent);
 
             var request = new DatatransSettlementRequest
             {
@@ -261,7 +265,7 @@ namespace Datatrans.Checkout.Managers
             var settleResult = datatransClient.SettleTransaction(request);
             if (!settleResult.ErrorMessage.IsNullOrEmpty())
             {
-                result.ErrorMessage = string.Format(ErrorMessageTemplate, settleResult.ResponseCode, settleResult.ResponseMessage);
+                result.ErrorMessage = GetErrorMessage(settleResult.ResponseCode, settleResult.ResponseMessage);
                 paymentTransaction.ResponseData = settleResult.ResponseContent;
                 return result;
             }
@@ -354,7 +358,7 @@ namespace Datatrans.Checkout.Managers
             {
                 transaction.ProcessError = response.ErrorMessage;
 
-                result.ErrorMessage = string.Format(ErrorMessageTemplate, response.ErrorCode, response.ErrorMessage, response.ErrorDetail);
+                result.ErrorMessage = GetErrorMessage(response.ErrorCode, response.ErrorMessage);
                 result.IsSuccess = false;
                 return result;
             }
@@ -440,6 +444,7 @@ namespace Datatrans.Checkout.Managers
             };
         }
 
+
         private string GetParamValue(NameValueCollection queryString, string paramName)
         {
             if (queryString == null || !queryString.HasKeys())
@@ -453,6 +458,11 @@ namespace Datatrans.Checkout.Managers
         private ISignProvider GetSignProvider(string hmacKey)
         {
             return _signProviderFactory(hmacKey);
+        }
+
+        private string GetErrorMessage(object code, string errorMessage)
+        {
+            return JsonConvert.SerializeObject(new {Code = code, Message = errorMessage});
         }
     }
 }

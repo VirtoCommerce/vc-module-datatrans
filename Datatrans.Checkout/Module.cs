@@ -1,12 +1,10 @@
-﻿using Datatrans.Checkout.Core.Event;
-using Datatrans.Checkout.Core.Services;
+﻿using Datatrans.Checkout.Core.Services;
 using Datatrans.Checkout.Managers;
 using Datatrans.Checkout.Services;
 using Microsoft.Practices.ServiceLocation;
 using Microsoft.Practices.Unity;
 using System;
 using VirtoCommerce.Domain.Payment.Services;
-using VirtoCommerce.Platform.Core.Events;
 using VirtoCommerce.Platform.Core.Modularity;
 using VirtoCommerce.Platform.Core.Settings;
 
@@ -23,8 +21,6 @@ namespace Datatrans.Checkout
 
         public override void Initialize()
         {
-            _container.RegisterType<IEventPublisher<DatatransBeforeCapturePaymentEvent>, EventPublisher<DatatransBeforeCapturePaymentEvent>>();
-
             _container.RegisterType<IDatatransCheckoutService, DatatransCheckoutService>();
             _container.RegisterType<IDatatransCapturePaymentService, DatatransCapturePaymentServiceEmptyImp>();
 
@@ -40,8 +36,7 @@ namespace Datatrans.Checkout
             {
                 var paymentMethod = new DatatransCheckoutPaymentMethod(
                     _container.Resolve<IDatatransCheckoutService>(), 
-                    _container.Resolve<Func<string, string, string, IDatatransClient>>(), 
-                    _container.Resolve<IEventPublisher<DatatransBeforeCapturePaymentEvent>>(),
+                    _container.Resolve<Func<string, string, string, IDatatransClient>>(),
                     _container.Resolve<IDatatransCapturePaymentService>(),
                     _container.Resolve<Func<string, ISignProvider>>());
                 paymentMethod.Name = "Datatrans Checkout Gateway";

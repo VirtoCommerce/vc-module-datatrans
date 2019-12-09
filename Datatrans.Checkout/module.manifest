@@ -103,5 +103,21 @@
                 <description>If datatrans api call is successful executes redirect to this URL to process payment. Only absolute urls are allowed.</description>
             </setting>
         </group>
+        <group name="Payment methods|Datatrans|Error page testing">
+            <setting>
+              <name>Datatrans.Checkout.ErrorTesting</name>
+              <valueType>boolean</valueType>
+              <defaultValue>false</defaultValue>
+              <title>Enable error testing mode</title>
+              <description>If this switch ON Datatrans module will always send error on transaction post processing. Not available on "live" mode.</description>
+            </setting>
+            <setting>
+              <name>Datatrans.Checkout.ErrorCode</name>
+              <valueType>integer</valueType>
+              <defaultValue>-1000</defaultValue>
+              <title>Error code</title>
+              <description>This error code will be send on transaction post processing.</description>
+            </setting>
+        </group>
     </settings>
 </module>

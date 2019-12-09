@@ -30,9 +30,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -46,16 +45,14 @@
       <HintPath>..\packages\VirtoCommerce.Domain.2.24.19\lib\net461\VirtoCommerce.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VirtoCommerce.Platform.Core, Version=2.13.19.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\VirtoCommerce.Platform.Core.2.13.19\lib\net461\VirtoCommerce.Platform.Core.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="VirtoCommerce.Platform.Core, Version=2.13.24.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\VirtoCommerce.Platform.Core.2.13.24\lib\net461\VirtoCommerce.Platform.Core.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Event\DatatransBeforeCapturePaymentEvent.cs" />
     <Compile Include="Model\DatatransAirlineData.cs" />
     <Compile Include="Model\DatatransCheckoutSettings.cs" />
     <Compile Include="Model\DatatransRefundRequest.cs" />
@@ -73,6 +70,7 @@
     <Compile Include="Services\IDatatransClient.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
