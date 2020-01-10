@@ -60,15 +60,9 @@ namespace Datatrans.Checkout.Managers
 
         private string Password => GetSetting(_serverToServerPassword);
 
-        public bool IsSale
-        {
-            get { return PaymentAction.EqualsInvariant("Sale"); }
-        }
+        public bool IsSale => PaymentAction.EqualsInvariant("Sale");
 
-        public bool IsTest
-        {
-            get { return ApiMode.EqualsInvariant("test"); }
-        }
+        public bool IsTest => ApiMode.EqualsInvariant("test");
 
         public string ServerToServerApi
         {
