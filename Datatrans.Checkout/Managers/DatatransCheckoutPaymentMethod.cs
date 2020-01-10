@@ -228,13 +228,19 @@ namespace Datatrans.Checkout.Managers
         public override CaptureProcessPaymentResult CaptureProcessPayment(CaptureProcessPaymentEvaluationContext context)
         {
             if (context == null)
-                throw new ArgumentNullException("context");
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
 
             if (context.Payment == null)
-                throw new ArgumentNullException("context.Payment");
+            {
+                throw new ArgumentNullException(nameof(context.Payment));
+            }
 
             if (context.Order == null)
-                throw new ArgumentNullException("context.Order");
+            {
+                throw new ArgumentNullException(nameof(context.Order));
+            }
 
             var getAirlineContext = new GetAirlineDataContext(context.Order, context.Payment, context.Parameters);
             var airlineData = _capturePaymentService.GetAirlineData(getAirlineContext);
