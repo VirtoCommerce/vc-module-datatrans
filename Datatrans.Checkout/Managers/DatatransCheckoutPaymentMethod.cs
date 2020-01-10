@@ -26,7 +26,6 @@ namespace Datatrans.Checkout.Managers
 
         private const string _transactionParamName = "uppTransactionId";
         private const string _paymentMethodCodeParamName = "paymentMethodCode";
-        private const string _merchantIdParamName = "merchant";
 
         private const string _serverToServerUsername = "Datatrans.Checkout.ServerToServer.Username";
         private const string _serverToServerPassword = "Datatrans.Checkout.ServerToServer.Password";
@@ -161,7 +160,6 @@ namespace Datatrans.Checkout.Managers
             var result = new PostProcessPaymentResult();
 
             var status = GetParamValue(context.Parameters, "status"); //possible values: error, success
-            var responseMessage = GetParamValue(context.Parameters, "responseMessage");
             var transactionId = GetParamValue(context.Parameters, _transactionParamName);
 
             bool.TryParse(GetSetting("Datatrans.Checkout.ErrorTesting"), out var errorTestingMode);
