@@ -55,6 +55,7 @@
     </Compile>
     <Compile Include="Model\DatatransAirlineData.cs" />
     <Compile Include="Model\DatatransCheckoutSettings.cs" />
+    <Compile Include="Model\DatatransErrorCodes.cs" />
     <Compile Include="Model\DatatransRefundRequest.cs" />
     <Compile Include="Model\DatatransRefundResponse.cs" />
     <Compile Include="Model\DatatransRequest.cs" />
