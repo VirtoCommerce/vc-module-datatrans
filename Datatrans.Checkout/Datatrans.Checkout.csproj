@@ -115,9 +115,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\logo.png" />
-    <Content Include="module.manifest">
-      <SubType>Designer</SubType>
-    </Content>
+    <Content Include="module.manifest" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\CommonAssemblyInfo.cs">
