@@ -170,7 +170,8 @@ namespace Datatrans.Checkout.Managers
             {
                 status = "error";
 
-                int.TryParse(GetSetting("Datatrans.Checkout.ErrorCode"), out var errorCode);
+                var errorCode = int.TryParse(GetSetting("Datatrans.Checkout.ErrorCode"), out var parsedErrorCode) ? parsedErrorCode : DatatransErrorCodes.DefaultErrorCode;
+
                 context.Parameters["errorCode"] = errorCode.ToString();
                 context.Parameters["errorMessage"] = "Error testing mode";
             }
@@ -217,9 +218,8 @@ namespace Datatrans.Checkout.Managers
             }
             else
             {
-                const int defaultErrorCode = -1000;
                 var errorMessage = GetParamValue(context.Parameters, "errorMessage");
-                var errorCode = int.TryParse(GetParamValue(context.Parameters, "errorCode"), out var parsedErrorCode) ? parsedErrorCode : defaultErrorCode;
+                var errorCode = int.TryParse(GetParamValue(context.Parameters, "errorCode"), out var parsedErrorCode) ? parsedErrorCode : DatatransErrorCodes.DefaultErrorCode;
                 result.ErrorMessage = GetErrorMessage(errorCode, errorMessage);
             }
 
