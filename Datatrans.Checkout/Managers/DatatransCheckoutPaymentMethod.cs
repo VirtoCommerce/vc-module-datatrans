@@ -378,7 +378,7 @@ namespace Datatrans.Checkout.Managers
         {
             if (!IsPartialRefund(parameters))
             {
-                throw new ArgumentException();
+                throw new ArgumentException("Parameters doesn't have a RefundAmount parameter");
             }
 
             return decimal.Parse(parameters["RefundAmount"]);
