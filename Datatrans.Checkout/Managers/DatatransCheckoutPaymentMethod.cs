@@ -215,12 +215,12 @@ namespace Datatrans.Checkout.Managers
 
             if (context.Payment == null)
             {
-                throw new ArgumentNullException(nameof(context.Payment));
+                throw new InvalidOperationException(nameof(context.Payment));
             }
 
             if (context.Order == null)
             {
-                throw new ArgumentNullException(nameof(context.Order));
+                throw new InvalidOperationException(nameof(context.Order));
             }
 
             var getAirlineContext = new GetAirlineDataContext(context.Order, context.Payment, context.Parameters);
@@ -292,27 +292,27 @@ namespace Datatrans.Checkout.Managers
 
             if (context.Payment == null)
             {
-                throw new ArgumentNullException(nameof(context.Payment));
+                throw new InvalidOperationException(nameof(context.Payment));
             }
 
             if (context.Order == null)
             {
-                throw new ArgumentNullException(nameof(context.Order));
+                throw new InvalidOperationException(nameof(context.Order));
             }
 
             if (string.IsNullOrEmpty(context.Payment.OuterId))
             {
-                throw new ArgumentNullException(nameof(context.Payment.OuterId));
+                throw new InvalidOperationException(nameof(context.Payment.OuterId));
             }
 
             if (string.IsNullOrEmpty(context.Order.Currency))
             {
-                throw new ArgumentNullException(nameof(context.Order.Currency));
+                throw new InvalidOperationException(nameof(context.Order.Currency));
             }
 
             if (string.IsNullOrEmpty(context.Order.Number))
             {
-                throw new ArgumentNullException(nameof(context.Payment.OuterId));
+                throw new InvalidOperationException(nameof(context.Payment.OuterId));
             }
 
             var result = new RefundProcessPaymentResult();
