@@ -396,7 +396,7 @@ namespace Datatrans.Checkout.Managers
 
         public override VoidProcessPaymentResult VoidProcessPayment(VoidProcessPaymentEvaluationContext context)
         {
-            throw new NotImplementedException();
+            return new VoidProcessPaymentResult{ IsSuccess = false, NewPaymentStatus = PaymentStatus.Voided };
         }
 
         /// <summary>
