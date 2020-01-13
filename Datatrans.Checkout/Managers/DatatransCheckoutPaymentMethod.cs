@@ -396,7 +396,7 @@ namespace Datatrans.Checkout.Managers
 
         public override VoidProcessPaymentResult VoidProcessPayment(VoidProcessPaymentEvaluationContext context)
         {
-            return new VoidProcessPaymentResult{ IsSuccess = false, NewPaymentStatus = PaymentStatus.Voided };
+            return new VoidProcessPaymentResult { IsSuccess = false, NewPaymentStatus = PaymentStatus.Voided };
         }
 
         /// <summary>
@@ -411,15 +411,24 @@ namespace Datatrans.Checkout.Managers
             var paymentMethodName = GetParamValue(queryString, _paymentMethodCodeParamName);
 
             var sign2 = GetParamValue(queryString, "sign2");
-            var validSignature = true;
+            bool validSignature;
 
-            if (!string.IsNullOrEmpty(sign2))
+            if (!string.IsNullOrEmpty(sign2) && !string.IsNullOrEmpty(HMACHex2 ?? HMACHex))
             {
                 var merchantId = GetParamValue(queryString, "merchantId");
                 var amount = GetParamValue(queryString, "amount");
                 var currency = GetParamValue(queryString, "currency");
 
                 validSignature = GetSignProvider(HMACHex2 ?? HMACHex).ValidateSignature(sign2, merchantId, int.Parse(amount), currency, transactionId);
+            }
+            else if (!string.IsNullOrEmpty(HMACHex2 ?? HMACHex) && string.IsNullOrEmpty(sign2))
+            {
+                validSignature = false;
+            }
+            else
+            {
+                // If sign2 doesn't received and HMACHex's settings not filled, we do not need a signature validation
+                validSignature = true;
             }
 
             return new ValidatePostProcessRequestResult
