@@ -30,6 +30,9 @@ namespace Datatrans.Checkout.Managers
         private const string _serverToServerUsername = "Datatrans.Checkout.ServerToServer.Username";
         private const string _serverToServerPassword = "Datatrans.Checkout.ServerToServer.Password";
 
+        private const string _apiEndpoint = "Datatrans.Checkout.APIEndpoint";
+        private const string _browserEnpoint = "Datatrans.Checkout.BrowserEndpoint";
+
         #region Settings        
 
         private string ApiMode => GetSetting(_datatransModeStoreSetting);
@@ -64,25 +67,9 @@ namespace Datatrans.Checkout.Managers
 
         public bool IsTest => ApiMode.EqualsInvariant("test");
 
-        public string ServerToServerApi
-        {
-            get
-            {
-                var live = "https://api.sandbox.datatrans.com";
-                var sandbox = "https://api.sandbox.datatrans.com";
-                return IsTest ? sandbox : live;
-            }
-        }
+        public string ServerToServerApi => GetSetting(_apiEndpoint);
 
-        public string FrontendApi
-        {
-            get
-            {
-                var live = "https://pay.sandbox.datatrans.com";
-                var sandbox = "https://pay.sandbox.datatrans.com";
-                return IsTest ? sandbox : live;
-            }
-        }
+        public string FrontendApi => GetSetting(_browserEnpoint);
 
         #endregion
 

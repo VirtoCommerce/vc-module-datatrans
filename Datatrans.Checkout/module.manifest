@@ -102,6 +102,18 @@
                 <title>Process Payment action</title>
                 <description>If datatrans api call is successful executes redirect to this URL to process payment. Only absolute urls are allowed.</description>
             </setting>
+            <setting>
+                <name>Datatrans.Checkout.APIEndpoint</name>
+                <valueType>string</valueType>
+                <defaultValue>https://api.sandbox.datatrans.com</defaultValue>
+                <title>URL for server to server requests</title>
+            </setting>
+            <setting>
+                <name>Datatrans.Checkout.BrowserEndpoint</name>
+                <valueType>string</valueType>
+                <defaultValue>https://pay.sandbox.datatrans.com</defaultValue>
+                <title>URL for payment page</title>
+            </setting>
         </group>
         <group name="Payment methods|Datatrans|Error page testing">
             <setting>
@@ -113,7 +125,7 @@
             </setting>
             <setting>
               <name>Datatrans.Checkout.ErrorCode</name>
-              <valueType>integer</valueType>
+              <valueType>string</valueType>
               <defaultValue>-1000</defaultValue>
               <title>Error code</title>
               <description>This error code will be send on transaction post processing.</description>
