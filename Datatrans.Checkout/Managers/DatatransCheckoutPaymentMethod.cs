@@ -1,15 +1,14 @@
-﻿using Datatrans.Checkout.Core.Event;
-using Datatrans.Checkout.Core.Model;
+﻿using Datatrans.Checkout.Core.Model;
 using Datatrans.Checkout.Core.Services;
 using Datatrans.Checkout.Extensions;
 using Datatrans.Checkout.Helpers;
 using Datatrans.Checkout.Services;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Specialized;
 using VirtoCommerce.Domain.Order.Model;
 using VirtoCommerce.Domain.Payment.Model;
 using VirtoCommerce.Platform.Core.Common;
-using VirtoCommerce.Platform.Core.Events;
 
 namespace Datatrans.Checkout.Managers
 {
@@ -27,12 +26,13 @@ namespace Datatrans.Checkout.Managers
 
         private const string _transactionParamName = "uppTransactionId";
         private const string _paymentMethodCodeParamName = "paymentMethodCode";
-        private const string _merchantIdParamName = "merchant";
 
         private const string _serverToServerUsername = "Datatrans.Checkout.ServerToServer.Username";
+#pragma warning disable S2068
         private const string _serverToServerPassword = "Datatrans.Checkout.ServerToServer.Password";
-
-        private readonly string ErrorMessageTemplate = "code:{0};message:{1}";
+#pragma warning restore S2068
+        private const string _apiEndpoint = "Datatrans.Checkout.APIEndpoint";
+        private const string _browserEnpoint = "Datatrans.Checkout.BrowserEndpoint";
 
         #region Settings        
 
@@ -64,35 +64,13 @@ namespace Datatrans.Checkout.Managers
 
         private string Password => GetSetting(_serverToServerPassword);
 
-        public bool IsSale
-        {
-            get { return PaymentAction.EqualsInvariant("Sale"); }
-        }
+        public bool IsSale => PaymentAction.EqualsInvariant("Sale");
 
-        public bool IsTest
-        {
-            get { return ApiMode.EqualsInvariant("test"); }
-        }
+        public bool IsTest => ApiMode.EqualsInvariant("test");
 
-        public string ServerToServerApi
-        {
-            get
-            {
-                var live = "https://api.sandbox.datatrans.com";
-                var sandbox = "https://api.sandbox.datatrans.com";
-                return IsTest ? sandbox : live;
-            }
-        }
+        public string ServerToServerApi => GetSetting(_apiEndpoint);
 
-        public string FrontendApi
-        {
-            get
-            {
-                var live = "https://pay.sandbox.datatrans.com";
-                var sandbox = "https://pay.sandbox.datatrans.com";
-                return IsTest ? sandbox : live;
-            }
-        }
+        public string FrontendApi => GetSetting(_browserEnpoint);
 
         #endregion
 
@@ -102,21 +80,18 @@ namespace Datatrans.Checkout.Managers
 
         private readonly IDatatransCheckoutService _datatransCheckoutService;
         private readonly Func<string, string, string, IDatatransClient> _datatransClientFactory;
-        private readonly IEventPublisher<DatatransBeforeCapturePaymentEvent> _settlemntEventPublisher;
         private readonly IDatatransCapturePaymentService _capturePaymentService;
         private readonly Func<string, ISignProvider> _signProviderFactory;
 
         public DatatransCheckoutPaymentMethod(
             IDatatransCheckoutService datatransCheckoutService, 
             Func<string, string, string, IDatatransClient> datatransClientFactory, 
-            IEventPublisher<DatatransBeforeCapturePaymentEvent> settlemntEventPublisher, 
             IDatatransCapturePaymentService capturePaymentService, 
             Func<string, ISignProvider> signProviderFactory) 
                 :base("DatatransCheckout")
         {
             _datatransCheckoutService = datatransCheckoutService;
             _datatransClientFactory = datatransClientFactory;
-            _settlemntEventPublisher = settlemntEventPublisher;
             _capturePaymentService = capturePaymentService;
             _signProviderFactory = signProviderFactory;
         }
@@ -167,8 +142,19 @@ namespace Datatrans.Checkout.Managers
             var result = new PostProcessPaymentResult();
 
             var status = GetParamValue(context.Parameters, "status"); //possible values: error, success
-            var responseMessage = GetParamValue(context.Parameters, "responseMessage");
             var transactionId = GetParamValue(context.Parameters, _transactionParamName);
+
+            bool.TryParse(GetSetting("Datatrans.Checkout.ErrorTesting"), out var errorTestingMode);
+
+            if (errorTestingMode && IsTest)
+            {
+                status = "error";
+
+                var errorCode = int.TryParse(GetSetting("Datatrans.Checkout.ErrorCode"), out var parsedErrorCode) ? parsedErrorCode : DatatransErrorCodes.DefaultErrorCode;
+
+                context.Parameters["errorCode"] = errorCode.ToString();
+                context.Parameters["errorMessage"] = "Error testing mode";
+            }
 
             context.Payment.OuterId = context.OuterId;
             if (status.EqualsInvariant("success") && IsSale)
@@ -213,7 +199,8 @@ namespace Datatrans.Checkout.Managers
             else
             {
                 var errorMessage = GetParamValue(context.Parameters, "errorMessage");
-                result.ErrorMessage = string.Format(ErrorMessageTemplate, "undefined", errorMessage);
+                var errorCode = int.TryParse(GetParamValue(context.Parameters, "errorCode"), out var parsedErrorCode) ? parsedErrorCode : DatatransErrorCodes.DefaultErrorCode;
+                result.ErrorMessage = GetErrorMessage(errorCode, errorMessage);
             }
 
             result.OrderId = context.Order.Id;
@@ -223,19 +210,22 @@ namespace Datatrans.Checkout.Managers
         public override CaptureProcessPaymentResult CaptureProcessPayment(CaptureProcessPaymentEvaluationContext context)
         {
             if (context == null)
-                throw new ArgumentNullException("context");
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
 
             if (context.Payment == null)
-                throw new ArgumentNullException("context.Payment");
+            {
+                throw new InvalidOperationException(nameof(context.Payment));
+            }
 
             if (context.Order == null)
-                throw new ArgumentNullException("context.Order");
+            {
+                throw new InvalidOperationException(nameof(context.Order));
+            }
 
             var getAirlineContext = new GetAirlineDataContext(context.Order, context.Payment, context.Parameters);
             var airlineData = _capturePaymentService.GetAirlineData(getAirlineContext);
-
-            var beforeSettlementEvent = new DatatransBeforeCapturePaymentEvent(context.Order, context.Payment, context.Parameters, airlineData);
-            _settlemntEventPublisher.Publish(beforeSettlementEvent);
 
             var request = new DatatransSettlementRequest
             {
@@ -261,7 +251,7 @@ namespace Datatrans.Checkout.Managers
             var settleResult = datatransClient.SettleTransaction(request);
             if (!settleResult.ErrorMessage.IsNullOrEmpty())
             {
-                result.ErrorMessage = string.Format(ErrorMessageTemplate, settleResult.ResponseCode, settleResult.ResponseMessage);
+                result.ErrorMessage = GetErrorMessage(settleResult.ResponseCode, settleResult.ResponseMessage);
                 paymentTransaction.ResponseData = settleResult.ResponseContent;
                 return result;
             }
@@ -303,27 +293,27 @@ namespace Datatrans.Checkout.Managers
 
             if (context.Payment == null)
             {
-                throw new ArgumentNullException(nameof(context.Payment));
+                throw new InvalidOperationException(nameof(context.Payment));
             }
 
             if (context.Order == null)
             {
-                throw new ArgumentNullException(nameof(context.Order));
+                throw new InvalidOperationException(nameof(context.Order));
             }
 
             if (string.IsNullOrEmpty(context.Payment.OuterId))
             {
-                throw new ArgumentNullException(nameof(context.Payment.OuterId));
+                throw new InvalidOperationException(nameof(context.Payment.OuterId));
             }
 
             if (string.IsNullOrEmpty(context.Order.Currency))
             {
-                throw new ArgumentNullException(nameof(context.Order.Currency));
+                throw new InvalidOperationException(nameof(context.Order.Currency));
             }
 
             if (string.IsNullOrEmpty(context.Order.Number))
             {
-                throw new ArgumentNullException(nameof(context.Payment.OuterId));
+                throw new InvalidOperationException(nameof(context.Payment.OuterId));
             }
 
             var result = new RefundProcessPaymentResult();
@@ -354,7 +344,7 @@ namespace Datatrans.Checkout.Managers
             {
                 transaction.ProcessError = response.ErrorMessage;
 
-                result.ErrorMessage = string.Format(ErrorMessageTemplate, response.ErrorCode, response.ErrorMessage, response.ErrorDetail);
+                result.ErrorMessage = GetErrorMessage(response.ErrorCode, response.ErrorMessage);
                 result.IsSuccess = false;
                 return result;
             }
@@ -389,7 +379,7 @@ namespace Datatrans.Checkout.Managers
         {
             if (!IsPartialRefund(parameters))
             {
-                throw new ArgumentException();
+                throw new ArgumentException("Parameters doesn't have a RefundAmount parameter");
             }
 
             return decimal.Parse(parameters["RefundAmount"]);
@@ -407,7 +397,7 @@ namespace Datatrans.Checkout.Managers
 
         public override VoidProcessPaymentResult VoidProcessPayment(VoidProcessPaymentEvaluationContext context)
         {
-            throw new NotImplementedException();
+            return new VoidProcessPaymentResult { IsSuccess = false, NewPaymentStatus = PaymentStatus.Voided };
         }
 
         /// <summary>
@@ -422,15 +412,24 @@ namespace Datatrans.Checkout.Managers
             var paymentMethodName = GetParamValue(queryString, _paymentMethodCodeParamName);
 
             var sign2 = GetParamValue(queryString, "sign2");
-            var validSignature = true;
+            bool validSignature;
 
-            if (!string.IsNullOrEmpty(sign2))
+            if (!string.IsNullOrEmpty(sign2) && !string.IsNullOrEmpty(HMACHex2 ?? HMACHex))
             {
                 var merchantId = GetParamValue(queryString, "merchantId");
                 var amount = GetParamValue(queryString, "amount");
                 var currency = GetParamValue(queryString, "currency");
 
                 validSignature = GetSignProvider(HMACHex2 ?? HMACHex).ValidateSignature(sign2, merchantId, int.Parse(amount), currency, transactionId);
+            }
+            else if (!string.IsNullOrEmpty(HMACHex2 ?? HMACHex) && string.IsNullOrEmpty(sign2))
+            {
+                validSignature = false;
+            }
+            else
+            {
+                // If sign2 doesn't received and HMACHex's settings not filled, we do not need a signature validation
+                validSignature = true;
             }
 
             return new ValidatePostProcessRequestResult
@@ -439,6 +438,7 @@ namespace Datatrans.Checkout.Managers
                 OuterId = transactionId
             };
         }
+
 
         private string GetParamValue(NameValueCollection queryString, string paramName)
         {
@@ -453,6 +453,11 @@ namespace Datatrans.Checkout.Managers
         private ISignProvider GetSignProvider(string hmacKey)
         {
             return _signProviderFactory(hmacKey);
+        }
+
+        private string GetErrorMessage(object code, string errorMessage)
+        {
+            return JsonConvert.SerializeObject(new {Code = code, Message = errorMessage});
         }
     }
 }

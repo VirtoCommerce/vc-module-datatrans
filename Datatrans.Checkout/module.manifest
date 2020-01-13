@@ -2,7 +2,7 @@
 <module>
     <id>Datatrans.Checkout</id>
     <version>1.1.0</version>
-    <platformVersion>2.13.19</platformVersion>
+    <platformVersion>2.13.24</platformVersion>
     <dependencies>
         <dependency id="VirtoCommerce.Core" version="2.24.19" />
     </dependencies>
@@ -101,6 +101,34 @@
                 <defaultValue>http://localhost/cart/externalpaymentcallback</defaultValue>
                 <title>Process Payment action</title>
                 <description>If datatrans api call is successful executes redirect to this URL to process payment. Only absolute urls are allowed.</description>
+            </setting>
+            <setting>
+                <name>Datatrans.Checkout.APIEndpoint</name>
+                <valueType>string</valueType>
+                <defaultValue>https://api.sandbox.datatrans.com</defaultValue>
+                <title>URL for server to server requests</title>
+            </setting>
+            <setting>
+                <name>Datatrans.Checkout.BrowserEndpoint</name>
+                <valueType>string</valueType>
+                <defaultValue>https://pay.sandbox.datatrans.com</defaultValue>
+                <title>URL for payment page</title>
+            </setting>
+        </group>
+        <group name="Payment methods|Datatrans|Error page testing">
+            <setting>
+              <name>Datatrans.Checkout.ErrorTesting</name>
+              <valueType>boolean</valueType>
+              <defaultValue>false</defaultValue>
+              <title>Enable error testing mode</title>
+              <description>If this switch ON Datatrans module will always send error on transaction post processing. Not available on "live" mode.</description>
+            </setting>
+            <setting>
+              <name>Datatrans.Checkout.ErrorCode</name>
+              <valueType>string</valueType>
+              <defaultValue>-1000</defaultValue>
+              <title>Error code</title>
+              <description>This error code will be send on transaction post processing.</description>
             </setting>
         </group>
     </settings>
