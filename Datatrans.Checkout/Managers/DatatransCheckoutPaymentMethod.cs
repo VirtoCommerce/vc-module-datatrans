@@ -28,7 +28,9 @@ namespace Datatrans.Checkout.Managers
         private const string _paymentMethodCodeParamName = "paymentMethodCode";
 
         private const string _serverToServerUsername = "Datatrans.Checkout.ServerToServer.Username";
+#pragma warning disable
         private const string _serverToServerPassword = "Datatrans.Checkout.ServerToServer.Password";
+#pragma warning restore
 
         private const string _apiEndpoint = "Datatrans.Checkout.APIEndpoint";
         private const string _browserEnpoint = "Datatrans.Checkout.BrowserEndpoint";
