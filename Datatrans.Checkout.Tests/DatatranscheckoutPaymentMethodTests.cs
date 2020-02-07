@@ -40,6 +40,7 @@ namespace Datatrans.Checkout.Tests
                 {"amount", "123"},
                 {"currency", "RU-ru"},
                 {"merchantId", "testMerchantId"},
+                {"status", "success"},
             };
 
             var result = paymentMethod.ValidatePostProcessRequest(queryParams);
@@ -101,6 +102,11 @@ namespace Datatrans.Checkout.Tests
                     Name = "Datatrans.Checkout.HMACHEXSign2",
                     Value = "testHMACHEXSign2"
                 },
+                new SettingEntry
+                {
+                    Name = "Datatrans.Checkout.HMACHex",
+                    Value = "testHMACHEX"
+                },
             };
 
             var queryParams = new NameValueCollection
@@ -111,11 +117,48 @@ namespace Datatrans.Checkout.Tests
                 {"amount", "123"},
                 {"currency", "RU-ru"},
                 {"merchantId", "testMerchantId"},
+                {"status", "success"},
             };
 
             var result = paymentMethod.ValidatePostProcessRequest(queryParams);
 
             signProviderFactory.Verify(x => x("testHMACHEXSign2"), Times.Once);
+            Assert.True(result.IsSuccess);
+        }
+
+        [Fact]
+        public void No_Validation_Test()
+        {
+            var signProviderFactory = CreateMockSignProviderFactory(CreateSignProvider());
+
+            var paymentMethod = CreateDatatransCheckoutPaymentMethod(
+                CreateMockDatatransCheckoutService().Object,
+                CreateMockDatatransFactory().Object,
+                CreateMockDatatransCapturePaymentService().Object,
+                signProviderFactory.Object);
+
+            paymentMethod.Settings = new List<SettingEntry>
+            {
+                new SettingEntry
+                {
+                    Name = "Datatrans.Checkout.HMACHex",
+                    Value = null
+                },
+            };
+
+            var queryParams = new NameValueCollection
+            {
+                {"paymentMethodCode", "DatatransCheckout"},
+                {"uppTransactionId", "testUppTransactionId"},
+                {"amount", "123"},
+                {"currency", "RU-ru"},
+                {"merchantId", "testMerchantId"},
+                {"status", "success"},
+            };
+
+            var result = paymentMethod.ValidatePostProcessRequest(queryParams);
+
+            signProviderFactory.Verify(x => x(It.IsAny<string>()), Times.Never);
             Assert.True(result.IsSuccess);
         }
 
