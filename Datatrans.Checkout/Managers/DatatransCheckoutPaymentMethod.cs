@@ -33,6 +33,8 @@ namespace Datatrans.Checkout.Managers
 #pragma warning restore S2068
         private const string _apiEndpoint = "Datatrans.Checkout.APIEndpoint";
         private const string _browserEnpoint = "Datatrans.Checkout.BrowserEndpoint";
+        private const string _successfulStatus = "success";
+        private const string _errorStatus = "error";
 
         #region Settings        
 
@@ -148,7 +150,7 @@ namespace Datatrans.Checkout.Managers
 
             if (errorTestingMode && IsTest)
             {
-                status = "error";
+                status = _errorStatus;
 
                 var errorCode = int.TryParse(GetSetting("Datatrans.Checkout.ErrorCode"), out var parsedErrorCode) ? parsedErrorCode : DatatransErrorCodes.DefaultErrorCode;
 
@@ -157,7 +159,7 @@ namespace Datatrans.Checkout.Managers
             }
 
             context.Payment.OuterId = context.OuterId;
-            if (status.EqualsInvariant("success") && IsSale)
+            if (status.EqualsInvariant(_successfulStatus) && IsSale)
             {
                 var captureResult = CaptureProcessPayment(new CaptureProcessPaymentEvaluationContext
                 {
@@ -175,7 +177,7 @@ namespace Datatrans.Checkout.Managers
                     result.IsSuccess = true;
                 }
             }
-            else if (status.EqualsInvariant("success"))
+            else if (status.EqualsInvariant(_successfulStatus))
             {
                 var transactionInfo = GetTransactionStatus(context.Payment.OuterId);
                 context.Payment.Transactions.Add(new PaymentGatewayTransaction()
@@ -410,25 +412,40 @@ namespace Datatrans.Checkout.Managers
         {
             var transactionId = GetParamValue(queryString, _transactionParamName);
             var paymentMethodName = GetParamValue(queryString, _paymentMethodCodeParamName);
-
             var sign2 = GetParamValue(queryString, "sign2");
+            var sign = GetParamValue(queryString, "sign");
+            var refNo = GetParamValue(queryString, "refNo");
+            var merchantId = GetParamValue(queryString, "merchantId");
+            var amount = GetParamValue(queryString, "amount");
+            var currency = GetParamValue(queryString, "currency");
+            var status = GetParamValue(queryString, "status");
+
             bool validSignature;
 
-            if (!string.IsNullOrEmpty(sign2) && !string.IsNullOrEmpty(HMACHex2 ?? HMACHex))
+            // Sign2 returns only for successful payments
+            // So we need to check status additionally
+            if (!string.IsNullOrEmpty(sign2) && !string.IsNullOrEmpty(HMACHex) && status.EqualsInvariant(_successfulStatus))
             {
-                var merchantId = GetParamValue(queryString, "merchantId");
-                var amount = GetParamValue(queryString, "amount");
-                var currency = GetParamValue(queryString, "currency");
-
                 validSignature = GetSignProvider(HMACHex2 ?? HMACHex).ValidateSignature(sign2, merchantId, int.Parse(amount), currency, transactionId);
             }
-            else if (!string.IsNullOrEmpty(HMACHex2 ?? HMACHex) && string.IsNullOrEmpty(sign2))
+            // Even if sign2 not received, it doesn't means that payment is scam
+            // It still could be a valid payment, with status "error" if it contains "sign" parameter
+            // We don't need additioonal check for a status, cause we know that sign2 passing with only successful payments
+            // https://docs.datatrans.ch/docs/security-sign
+            else if (!string.IsNullOrEmpty(sign) && !string.IsNullOrEmpty(HMACHex))
+            {
+                validSignature = GetSignProvider(HMACHex).ValidateSignature(sign, merchantId, int.Parse(amount), currency, refNo);
+            }
+            // Sign parameter is required if HMACHex setting is not null
+            // And payment can't be valid without "sign"
+            else if (string.IsNullOrEmpty(sign) && !string.IsNullOrEmpty(HMACHex))
             {
                 validSignature = false;
             }
+            // Case when sign and sign2 parameters is missing, and if HMACHex and HMACHex2 settings is not filled
+            // We do not need to do anything with validation
             else
             {
-                // If sign2 doesn't received and HMACHex's settings not filled, we do not need a signature validation
                 validSignature = true;
             }
 
