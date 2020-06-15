@@ -14,7 +14,7 @@
         <author>Konstantin Savosteev</author>
     </authors>
     <releaseNotes>First version.</releaseNotes>
-    <iconUrl>https://raw.githubusercontent.com/VirtoCommerce/vc-module-datatrans/master/Datatrans.Checkout/Content/logo.png</iconUrl>
+    <iconUrl>Modules/$(Datatrans.Checkout)/Content/logo.png</iconUrl>
     
     <assemblyFile>Datatrans.Checkout.dll</assemblyFile>
     <moduleType>Datatrans.Checkout.Module, Datatrans.Checkout</moduleType>
