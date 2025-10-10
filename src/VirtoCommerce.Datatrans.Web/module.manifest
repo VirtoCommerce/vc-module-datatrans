@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+  <id>VirtoCommerce.Datatrans</id>
+  <version>3.800.0</version>
+  <version-tag></version-tag>
+
+  <platformVersion>3.904.0</platformVersion>
+  <dependencies>
+    <!--<dependency id="VirtoCommerce.Core" version="3.800.0" />-->
+  </dependencies>
+
+  <title>VirtoCommerce Datatrans</title>
+  <description>VirtoCommerce Datatrans</description>
+
+  <authors>
+    <author>basilkot</author>
+  </authors>
+  <owners>
+    <owner>VirtoCommerce</owner>
+  </owners>
+
+  <projectUrl>https://github.com/VirtoCommerce/vc-module-datatrans</projectUrl>
+  <iconUrl>Modules/$(VirtoCommerce.Datatrans)/Content/logo.png</iconUrl>
+  <requireLicenseAcceptance>false</requireLicenseAcceptance>
+
+  <assemblyFile>VirtoCommerce.Datatrans.Web.dll</assemblyFile>
+  <moduleType>VirtoCommerce.Datatrans.Web.Module, VirtoCommerce.Datatrans.Web</moduleType>
+
+  <releaseNotes>First version.</releaseNotes>
+  <copyright>Copyright © 2025 VirtoCommerce. All rights reserved</copyright>
+  <tags>extension module</tags>
+  <useFullTypeNameInSwagger>false</useFullTypeNameInSwagger>
+</module>
