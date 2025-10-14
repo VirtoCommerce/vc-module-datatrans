@@ -101,7 +101,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         {
             transaction.Refno = Guid.NewGuid().ToString().Replace("-", "").ToLower();
             var authReq = await CreateAuthorizeRequest(request, transaction);
-            var authResp = await datatransClient.AuthorizeAuthenticatedAsync(transactionId, authReq, cancellationToken);
+            await datatransClient.AuthorizeAuthenticatedAsync(transactionId, authReq, cancellationToken);
 
             transaction = await datatransClient.GetTransactionAsync(transactionId, cancellationToken);
         }
@@ -323,7 +323,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
     #region Helpers
 
-    private string GetTransactionId(PaymentRequestBase context)
+    private static string GetTransactionId(PaymentRequestBase context)
     {
         var payment = (PaymentIn)context.Payment;
 
@@ -364,7 +364,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         };
     }
 
-    private PostProcessPaymentRequestResult PaymentApproved(DatatransTransaction tx, PaymentStatus newStatus, PaymentIn payment, CustomerOrder order)
+    private static PostProcessPaymentRequestResult PaymentApproved(DatatransTransaction tx, PaymentStatus newStatus, PaymentIn payment, CustomerOrder order)
     {
         var result = new PostProcessPaymentRequestResult
         {
@@ -416,7 +416,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         return result;
     }
 
-    private PostProcessPaymentRequestResult PaymentDeclined(DatatransTransaction tx, PaymentIn payment)
+    private static PostProcessPaymentRequestResult PaymentDeclined(DatatransTransaction tx, PaymentIn payment)
     {
         var msg = tx.Error != null ? JsonConvert.SerializeObject(tx.Error) : "Invalid Datatrans response";
         var errorMessage = $"Your transaction was declined: {msg}";
@@ -432,7 +432,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         };
     }
 
-    private PostProcessPaymentRequestResult PaymentPending(DatatransTransaction tx, PaymentIn payment)
+    private static PostProcessPaymentRequestResult PaymentPending(DatatransTransaction tx, PaymentIn payment)
     {
         var msg = tx.Error != null ? JsonConvert.SerializeObject(tx.Error) : "Invalid Datatrans response";
         var errorMessage = $"Your transaction is pending: {msg}";
@@ -449,7 +449,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         };
     }
 
-    private PostProcessPaymentRequestResult PaymentInvalid(DatatransTransaction tx, PaymentIn payment)
+    private static PostProcessPaymentRequestResult PaymentInvalid(DatatransTransaction tx, PaymentIn payment)
     {
         var msg = tx.Error != null ? JsonConvert.SerializeObject(tx.Error) : "Invalid Datatrans response";
         var errorMessage = $"There was an error processing your transaction: {msg}";
