@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using VirtoCommerce.CoreModule.Core.Currency;
 using VirtoCommerce.Datatrans.Core.Models;
 using VirtoCommerce.Datatrans.Core.Services;
 using VirtoCommerce.OrdersModule.Core.Model;
@@ -15,7 +16,7 @@ using VirtoCommerce.StoreModule.Core.Model;
 
 namespace VirtoCommerce.Datatrans.Data.Providers;
 
-public class DatatransPaymentMethod(IDatatransClient datatransClient) : PaymentMethod(nameof(DatatransPaymentMethod)), ISupportCaptureFlow, ISupportRefundFlow
+public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyService currencyService) : PaymentMethod(nameof(DatatransPaymentMethod)), ISupportCaptureFlow, ISupportRefundFlow
 {
     public override PaymentMethodType PaymentMethodType => PaymentMethodType.Standard;
     public override PaymentMethodGroupType PaymentMethodGroupType => PaymentMethodGroupType.BankCard;
@@ -66,7 +67,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient) : PaymentM
     {
         var payment = (PaymentIn)request.Payment;
 
-        var initRequest = CreateInitRequest(request);
+        var initRequest = await CreateInitRequest(request);
         var initResponse = await datatransClient.InitTransactionAsync(initRequest);
 
         var ok = initResponse.Error is null && !string.IsNullOrEmpty(initResponse.TransactionId);
@@ -75,7 +76,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient) : PaymentM
         payment.PaymentStatus = ok ? PaymentStatus.Pending : PaymentStatus.Voided;
         payment.Status = payment.PaymentStatus.ToString();
 
-        return CreateInitRequestResult(initResponse, request);
+        return await CreateInitRequestResult(initResponse, request);
     }
 
     protected virtual async Task<PostProcessPaymentRequestResult> PostProcessPaymentAsync(PostProcessPaymentRequest request, CancellationToken cancellationToken = default)
@@ -99,7 +100,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient) : PaymentM
         if (transaction.Status is "authenticated")
         {
             transaction.Refno = Guid.NewGuid().ToString().Replace("-", "").ToLower();
-            var authReq = CreateAuthorizeRequest(request, transaction);
+            var authReq = await CreateAuthorizeRequest(request, transaction);
             var authResp = await datatransClient.AuthorizeAuthenticatedAsync(transactionId, authReq, cancellationToken);
 
             transaction = await datatransClient.GetTransactionAsync(transactionId, cancellationToken);
@@ -173,7 +174,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient) : PaymentM
         }
 
         var transaction = await datatransClient.GetTransactionAsync(transactionId);
-        var amountMinor = ToMinorUnits(amountToCapture);
+        var amountMinor = await ToMinorUnits(payment.Currency, amountToCapture);
 
         var captureRequest = new DatatransCaptureRequest
         {
@@ -210,7 +211,6 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient) : PaymentM
     protected virtual async Task<RefundPaymentRequestResult> RefundProcessPaymentAsync(RefundPaymentRequest context)
     {
         var payment = (PaymentIn)context.Payment;
-        var order = (CustomerOrder)context.Order;
         var transactionId = GetTransactionId(context);
 
         if (!payment.CapturedDate.HasValue)
@@ -243,7 +243,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient) : PaymentM
         }
 
         var transaction = await datatransClient.GetTransactionAsync(transactionId);
-        var amountMinor = ToMinorUnits(amountToRefund);
+        var amountMinor = await ToMinorUnits(payment.Currency, amountToRefund);
 
         var request = new DatatransRefundRequest
         {
@@ -274,7 +274,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient) : PaymentM
 
     #region extension points
 
-    protected virtual DatatransInitRequest CreateInitRequest(ProcessPaymentRequest request)
+    protected virtual async Task<DatatransInitRequest> CreateInitRequest(ProcessPaymentRequest request)
     {
         var payment = (PaymentIn)request.Payment;
         var order = (CustomerOrder)request.Order;
@@ -283,17 +283,17 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient) : PaymentM
         var url = (store.SecureUrl.IsNullOrEmpty() ? store.Url : store.SecureUrl)?.TrimEnd('/');
 
         var result = AbstractTypeFactory<DatatransInitRequest>.TryCreateInstance();
-        result.Amount = ToMinorUnits(payment.Sum);
+        result.Amount = await ToMinorUnits(payment.Currency, payment.Sum);
         result.Currency = payment.Currency ?? order.Currency;
         result.ReturnUrl = $"{url}/account/orders/{order.Id}/payment";
         return result;
     }
 
-    protected virtual ProcessPaymentRequestResult CreateInitRequestResult(DatatransInitResponse initResponse, ProcessPaymentRequest request)
+    protected virtual Task<ProcessPaymentRequestResult> CreateInitRequestResult(DatatransInitResponse initResponse, ProcessPaymentRequest request)
     {
         var payment = (PaymentIn)request.Payment;
 
-        return new ProcessPaymentRequestResult
+        var result = new ProcessPaymentRequestResult
         {
             IsSuccess = initResponse.Error != null,
             NewPaymentStatus = payment.PaymentStatus,
@@ -305,16 +305,18 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient) : PaymentM
                 ["startUrl"] = datatransClient.BuildStartPaymentUri(initResponse.TransactionId).ToString(),
             },
         };
+
+        return Task.FromResult(result);
     }
 
-    protected virtual DatatransAuthorizeAuthenticatedRequest CreateAuthorizeRequest(PostProcessPaymentRequest request, DatatransTransaction transaction)
+    protected virtual Task<DatatransAuthorizeAuthenticatedRequest> CreateAuthorizeRequest(PostProcessPaymentRequest request, DatatransTransaction transaction)
     {
         var result = AbstractTypeFactory<DatatransAuthorizeAuthenticatedRequest>.TryCreateInstance();
 
         result.Amount = transaction.Detail.Authorize.Amount;
         result.Refno = transaction.Refno;
 
-        return result;
+        return Task.FromResult(result);
     }
 
     #endregion
@@ -333,9 +335,13 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient) : PaymentM
         return transactionId;
     }
 
-    private static long ToMinorUnits(decimal amount)
+    private async Task<long> ToMinorUnits(string currencyCode, decimal amount)
     {
-        return (long)Math.Round(amount * 100m, MidpointRounding.AwayFromZero);
+        const int @base = 10;
+        var currency = (await currencyService.GetAllCurrenciesAsync()).First(x => x.Code == currencyCode);
+        var multiplier = (decimal)Math.Pow(@base, currency.DecimalDigits); // 1, 100, or 1000
+
+        return (long)Math.Round(amount * multiplier, MidpointRounding.AwayFromZero);
     }
 
     #endregion
