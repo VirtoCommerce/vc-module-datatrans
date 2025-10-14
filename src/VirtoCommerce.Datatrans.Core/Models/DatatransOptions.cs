@@ -13,10 +13,8 @@ public class DatatransOptions
 
     public bool UseSandbox { get; set; } = true;
 
-    public string ApiUser { get; set; }
-    public string ApiPassword { get; set; }  // или API key/secret
-
-    public string PushSignatureSecret { get; set; }
+    public string MerchantId { get; set; }
+    public string Secret { get; set; }
 
     public DatatransApiRoutes Routes { get; set; } = new();
 }
@@ -24,7 +22,7 @@ public class DatatransOptions
 public class DatatransApiRoutes
 {
     // POST
-    public string InitPath { get; set; } = "/v1/transactions";
+    public string SecureFieldsPath { get; set; } = "/v1/transactions/secureFields";
 
     // GET
     public string TxnPath { get; set; } = "/v1/transactions/{transactionId}";

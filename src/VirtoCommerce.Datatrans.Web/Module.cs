@@ -1,6 +1,10 @@
+using System;
+using System.Net.Http.Headers;
+using System.Text;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using VirtoCommerce.Datatrans.Core;
 using VirtoCommerce.Datatrans.Core.Models;
 using VirtoCommerce.Datatrans.Core.Services;
@@ -19,11 +23,25 @@ public class Module : IModule, IHasConfiguration
 
     public void Initialize(IServiceCollection serviceCollection)
     {
-        serviceCollection.AddOptions<DatatransPaymentMethodOptions>().Bind(Configuration.GetSection("Payments:Datatrans")).ValidateDataAnnotations();
+        serviceCollection.AddOptions<DatatransOptions>().Bind(Configuration.GetSection("Payments:Datatrans")).ValidateDataAnnotations();
 
         serviceCollection.AddTransient<DatatransPaymentMethod>();
 
         serviceCollection.AddTransient<IDatatransClient, DatatransClient>();
+
+        serviceCollection.AddHttpClient("Datatrans", (sp, http) =>
+        {
+            var opt = sp.GetRequiredService<IOptions<DatatransOptions>>().Value;
+            http.BaseAddress = new Uri(opt.UseSandbox ? opt.SandboxBaseUrl : opt.ProductionBaseUrl);
+            http.Timeout = TimeSpan.FromSeconds(30);
+
+            if (!string.IsNullOrEmpty(opt.MerchantId))
+            {
+                var bytes = Encoding.UTF8.GetBytes($"{opt.MerchantId}:{opt.Secret}");
+                http.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Basic", Convert.ToBase64String(bytes));
+            }
+        });
     }
 
     public void PostInitialize(IApplicationBuilder appBuilder)

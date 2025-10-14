@@ -1,7 +1,6 @@
 namespace VirtoCommerce.Datatrans.Core.Models;
 
-public class DatatransResponse
+public class DatatransResponseBase
 {
-    public string TransactionId { get; set; }
     public DatatransError Error { get; set; }
 }

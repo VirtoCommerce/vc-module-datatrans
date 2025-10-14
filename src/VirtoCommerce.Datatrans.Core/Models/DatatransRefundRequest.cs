@@ -1,8 +1,8 @@
-﻿namespace VirtoCommerce.Datatrans.Core.Models;
+namespace VirtoCommerce.Datatrans.Core.Models;
 
 public class DatatransRefundRequest
 {
-    public long AmountMinor { get; set; }
+    public long Amount { get; set; }
     public string Currency { get; set; }
-    public string Reason { get; set; }
+    public string Refno { get; set; }
 }
