@@ -147,7 +147,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
         return new VoidPaymentRequestResult
         {
-            IsSuccess = response.Error != null,
+            IsSuccess = response.Error == null,
             NewPaymentStatus = payment.PaymentStatus,
             ErrorMessage = response.Error?.Message,
         };
@@ -202,7 +202,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
         return new CapturePaymentRequestResult
         {
-            IsSuccess = response.Error != null,
+            IsSuccess = response.Error == null,
             NewPaymentStatus = payment.PaymentStatus,
             ErrorMessage = response.Error?.Message,
         };
@@ -264,7 +264,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
         return new RefundPaymentRequestResult
         {
-            IsSuccess = response.Error != null,
+            IsSuccess = response.Error == null,
             NewPaymentStatus = payment.PaymentStatus,
             ErrorMessage = response.Error?.Message,
         };
@@ -295,7 +295,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
         var result = new ProcessPaymentRequestResult
         {
-            IsSuccess = initResponse.Error != null,
+            IsSuccess = initResponse.Error == null,
             NewPaymentStatus = payment.PaymentStatus,
             ErrorMessage = initResponse.Error?.Message,
             PublicParameters = new()
