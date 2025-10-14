@@ -6,9 +6,9 @@
 
   <platformVersion>3.904.0</platformVersion>
   <dependencies>
-    <dependency id="VirtoCommerce.PaymentModule.Core" version="3.810.0" />
-    <dependency id="VirtoCommerce.StoreModule.Core" version="3.821.0" />
-    <dependency id="VirtoCommerce.OrdersModule.Core" version="3.859.0" />
+    <dependency id="VirtoCommerce.PaymentModule" version="3.810.0" />
+    <dependency id="VirtoCommerce.StoreModule" version="3.821.0" />
+    <dependency id="VirtoCommerce.OrdersModule" version="3.859.0" />
   </dependencies>
 
   <title>VirtoCommerce Datatrans</title>
