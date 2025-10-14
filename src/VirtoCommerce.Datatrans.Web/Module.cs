@@ -26,7 +26,6 @@ public class Module : IModule, IHasConfiguration
         serviceCollection.AddOptions<DatatransOptions>().Bind(Configuration.GetSection("Payments:Datatrans")).ValidateDataAnnotations();
 
         serviceCollection.AddTransient<DatatransPaymentMethod>();
-
         serviceCollection.AddTransient<IDatatransClient, DatatransClient>();
 
         serviceCollection.AddHttpClient("Datatrans", (sp, http) =>
