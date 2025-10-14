@@ -348,7 +348,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
     #region post process status mappers
 
-    private PostProcessPaymentRequestResult GetDatatransPostResult(
+    private static PostProcessPaymentRequestResult GetDatatransPostResult(
         DatatransTransaction transaction,
         PaymentIn payment,
         CustomerOrder order
