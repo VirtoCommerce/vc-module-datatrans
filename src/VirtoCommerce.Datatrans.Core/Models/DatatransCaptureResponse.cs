@@ -1,5 +1,3 @@
 namespace VirtoCommerce.Datatrans.Core.Models;
 
-public class DatatransCaptureResponse : DatatransResponseBase
-{
-}
+public class DatatransCaptureResponse : DatatransResponseBase;

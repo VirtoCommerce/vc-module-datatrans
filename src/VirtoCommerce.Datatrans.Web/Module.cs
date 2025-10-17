@@ -11,6 +11,7 @@ using VirtoCommerce.Datatrans.Core.Services;
 using VirtoCommerce.Datatrans.Data.Providers;
 using VirtoCommerce.Datatrans.Data.Services;
 using VirtoCommerce.PaymentModule.Core.Services;
+using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Modularity;
 using VirtoCommerce.Platform.Core.Settings;
 
@@ -30,13 +31,13 @@ public class Module : IModule, IHasConfiguration
 
         serviceCollection.AddHttpClient("Datatrans", (sp, http) =>
         {
-            var opt = sp.GetRequiredService<IOptions<DatatransOptions>>().Value;
-            http.BaseAddress = new Uri(opt.UseSandbox ? opt.SandboxBaseUrl : opt.ProductionBaseUrl);
+            var options = sp.GetRequiredService<IOptions<DatatransOptions>>().Value;
+            http.BaseAddress = new Uri(options.UseSandbox ? options.SandboxBaseUrl : options.ProductionBaseUrl);
             http.Timeout = TimeSpan.FromSeconds(30);
 
-            if (!string.IsNullOrEmpty(opt.MerchantId))
+            if (!options.MerchantId.IsNullOrEmpty())
             {
-                var bytes = Encoding.UTF8.GetBytes($"{opt.MerchantId}:{opt.Secret}");
+                var bytes = Encoding.UTF8.GetBytes($"{options.MerchantId}:{options.Secret}");
                 http.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Basic", Convert.ToBase64String(bytes));
             }

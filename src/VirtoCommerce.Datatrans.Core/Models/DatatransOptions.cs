@@ -25,7 +25,7 @@ public class DatatransApiRoutes
     public string SecureFieldsPath { get; set; } = "/v1/transactions/secureFields";
 
     // GET
-    public string TxnPath { get; set; } = "/v1/transactions/{transactionId}";
+    public string TransactionPath { get; set; } = "/v1/transactions/{transactionId}";
 
     // POST
     public string AuthorizeAuthenticatedPath { get; set; } = "/v1/transactions/{transactionId}/authorize";

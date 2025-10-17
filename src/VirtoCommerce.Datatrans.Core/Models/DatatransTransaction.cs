@@ -16,14 +16,14 @@ public class DatatransTransaction : DatatransResponseBase
     public DatatransTransactionCard Card { get; set; }
 }
 
-public class DatatransTransactionAmount
-{
-    public long Amount { get; set; }
-}
-
 public class DatatransTransactionDetail
 {
     public DatatransTransactionAmount Authorize { get; set; }
+}
+
+public class DatatransTransactionAmount
+{
+    public long Amount { get; set; }
 }
 
 public class DatatransTransactionCard

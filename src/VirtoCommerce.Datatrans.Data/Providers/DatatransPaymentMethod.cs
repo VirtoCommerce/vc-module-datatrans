@@ -21,7 +21,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
     public override PaymentMethodType PaymentMethodType => PaymentMethodType.Standard;
     public override PaymentMethodGroupType PaymentMethodGroupType => PaymentMethodGroupType.BankCard;
 
-    #region overrides
+    #region Overrides
 
     public override ProcessPaymentRequestResult ProcessPayment(ProcessPaymentRequest request)
     {
@@ -50,18 +50,20 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
     public override ValidatePostProcessRequestResult ValidatePostProcessRequest(NameValueCollection queryString)
     {
-        var tx = queryString["transactionId"];
+        var transactionId = queryString["transactionId"];
+
         var result = new ValidatePostProcessRequestResult
         {
-            IsSuccess = !string.IsNullOrEmpty(tx),
-            OuterId = tx,
+            IsSuccess = !transactionId.IsNullOrEmpty(),
+            OuterId = transactionId,
         };
+
         return result;
     }
 
     #endregion
 
-    #region protected async methods
+    #region Protected async methods
 
     protected virtual async Task<ProcessPaymentRequestResult> ProcessPaymentAsync(ProcessPaymentRequest request)
     {
@@ -70,10 +72,10 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         var initRequest = await CreateInitRequest(request);
         var initResponse = await datatransClient.InitTransactionAsync(initRequest);
 
-        var ok = initResponse.Error is null && !string.IsNullOrEmpty(initResponse.TransactionId);
+        var success = initResponse.Error is null && !initResponse.TransactionId.IsNullOrEmpty();
 
         payment.OuterId = initResponse.TransactionId;
-        payment.PaymentStatus = ok ? PaymentStatus.Pending : PaymentStatus.Voided;
+        payment.PaymentStatus = success ? PaymentStatus.Pending : PaymentStatus.Voided;
         payment.Status = payment.PaymentStatus.ToString();
 
         return await CreateInitRequestResult(initResponse, request);
@@ -81,17 +83,14 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
     protected virtual async Task<PostProcessPaymentRequestResult> PostProcessPaymentAsync(PostProcessPaymentRequest request, CancellationToken cancellationToken = default)
     {
-        var payment = (PaymentIn)request.Payment;
-        var order = (CustomerOrder)request.Order;
-
         var transactionId = request.Parameters?.Get("transactionId");
 
-        if (string.IsNullOrEmpty(transactionId))
+        if (transactionId.IsNullOrEmpty())
         {
             return new PostProcessPaymentRequestResult
             {
                 IsSuccess = false,
-                ErrorMessage = "transactionId not found"
+                ErrorMessage = "transactionId not found",
             };
         }
 
@@ -99,14 +98,16 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
         if (transaction.Status is "authenticated")
         {
-            transaction.Refno = Guid.NewGuid().ToString().Replace("-", "").ToLower();
-            var authReq = await CreateAuthorizeRequest(request, transaction);
-            await datatransClient.AuthorizeAuthenticatedAsync(transactionId, authReq, cancellationToken);
+            transaction.Refno = Guid.NewGuid().ToString("N").ToLower();
+            var authorizeRequest = await CreateAuthorizeRequest(transaction, request);
+            await datatransClient.AuthorizeAuthenticatedAsync(transactionId, authorizeRequest, cancellationToken);
 
             transaction = await datatransClient.GetTransactionAsync(transactionId, cancellationToken);
         }
 
-        var result = GetDatatransPostResult(transaction, payment, order);
+        var order = (CustomerOrder)request.Order;
+        var payment = (PaymentIn)request.Payment;
+        var result = GetDatatransPostResult(transaction, order, payment);
 
         return result;
     }
@@ -114,14 +115,13 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
     protected virtual async Task<VoidPaymentRequestResult> VoidProcessPaymentAsync(VoidPaymentRequest request)
     {
         var payment = (PaymentIn)request.Payment;
-        var transactionId = GetTransactionId(request);
 
         if (payment.PaymentStatus == PaymentStatus.Voided)
         {
             return new VoidPaymentRequestResult
             {
                 IsSuccess = true,
-                NewPaymentStatus = PaymentStatus.Voided
+                NewPaymentStatus = PaymentStatus.Voided,
             };
         }
 
@@ -130,10 +130,11 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
             return new VoidPaymentRequestResult
             {
                 IsSuccess = false,
-                ErrorMessage = "Cannot void a captured payment. Use refund instead."
+                ErrorMessage = "Cannot void a captured payment. Use refund instead.",
             };
         }
 
+        var transactionId = GetTransactionId(request);
         var response = await datatransClient.VoidAsync(transactionId);
 
         if (response.Error != null)
@@ -161,7 +162,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         var alreadyCaptured = payment.Captures.Sum(x => x.Amount);
         var total = payment.Sum;
 
-        var amountToCapture = context.CaptureAmount ?? (total - alreadyCaptured);
+        var amountToCapture = context.CaptureAmount ?? total - alreadyCaptured;
 
         if (amountToCapture <= 0m)
         {
@@ -169,7 +170,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
             {
                 IsSuccess = true,
                 NewPaymentStatus = payment.PaymentStatus,
-                ErrorMessage = null
+                ErrorMessage = null,
             };
         }
 
@@ -218,7 +219,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
             return new RefundPaymentRequestResult
             {
                 IsSuccess = false,
-                ErrorMessage = "No captured amount to refund."
+                ErrorMessage = "No captured amount to refund.",
             };
         }
 
@@ -227,7 +228,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
             return new RefundPaymentRequestResult
             {
                 IsSuccess = false,
-                ErrorMessage = "Refund amount exceeds captured amount."
+                ErrorMessage = "Refund amount exceeds captured amount.",
             };
         }
 
@@ -238,7 +239,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
             return new RefundPaymentRequestResult
             {
                 IsSuccess = false,
-                ErrorMessage = "Refund amount must be greater than zero."
+                ErrorMessage = "Refund amount must be greater than zero.",
             };
         }
 
@@ -272,13 +273,13 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
     #endregion
 
-    #region extension points
+    #region Extension points
 
     protected virtual async Task<DatatransInitRequest> CreateInitRequest(ProcessPaymentRequest request)
     {
-        var payment = (PaymentIn)request.Payment;
-        var order = (CustomerOrder)request.Order;
         var store = (Store)request.Store;
+        var order = (CustomerOrder)request.Order;
+        var payment = (PaymentIn)request.Payment;
 
         var url = (store.SecureUrl.IsNullOrEmpty() ? store.Url : store.SecureUrl)?.TrimEnd('/');
 
@@ -286,6 +287,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         result.Amount = await ToMinorUnits(payment.Currency, payment.Sum);
         result.Currency = payment.Currency ?? order.Currency;
         result.ReturnUrl = $"{url}/account/orders/{order.Id}/payment";
+
         return result;
     }
 
@@ -309,7 +311,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         return Task.FromResult(result);
     }
 
-    protected virtual Task<DatatransAuthorizeAuthenticatedRequest> CreateAuthorizeRequest(PostProcessPaymentRequest request, DatatransTransaction transaction)
+    protected virtual Task<DatatransAuthorizeAuthenticatedRequest> CreateAuthorizeRequest(DatatransTransaction transaction, PostProcessPaymentRequest request)
     {
         var result = AbstractTypeFactory<DatatransAuthorizeAuthenticatedRequest>.TryCreateInstance();
 
@@ -346,82 +348,79 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
     #endregion
 
-    #region post process status mappers
+    #region Post process status mappers
 
-    private static PostProcessPaymentRequestResult GetDatatransPostResult(
-        DatatransTransaction transaction,
-        PaymentIn payment,
-        CustomerOrder order
-    )
+    private static PostProcessPaymentRequestResult GetDatatransPostResult(DatatransTransaction transaction, CustomerOrder order, PaymentIn payment)
     {
         var newStatus = ConvertStatus(transaction.Status);
+
         return newStatus switch
         {
-            PaymentStatus.Authorized or PaymentStatus.Paid => PaymentApproved(transaction, newStatus, payment, order),
+            PaymentStatus.Authorized or PaymentStatus.Paid => PaymentApproved(transaction, order, payment, newStatus),
             PaymentStatus.Declined => PaymentDeclined(transaction, payment),
             PaymentStatus.Pending => PaymentPending(transaction, payment),
             _ => PaymentInvalid(transaction, payment),
         };
     }
 
-    private static PostProcessPaymentRequestResult PaymentApproved(DatatransTransaction tx, PaymentStatus newStatus, PaymentIn payment, CustomerOrder order)
+    private static PostProcessPaymentRequestResult PaymentApproved(DatatransTransaction transaction, CustomerOrder order, PaymentIn payment, PaymentStatus newStatus)
     {
         var result = new PostProcessPaymentRequestResult
         {
             NewPaymentStatus = newStatus,
             OrderId = order.Id,
-            OuterId = tx.TransactionId,
+            OuterId = transaction.TransactionId,
             IsSuccess = true,
         };
 
         payment.PaymentStatus = newStatus;
         payment.Status = newStatus.ToString();
         payment.IsApproved = true;
-        payment.OuterId = tx.TransactionId;
+        payment.OuterId = transaction.TransactionId;
         payment.AuthorizedDate ??= DateTime.UtcNow;
 
         payment.CapturedDate ??= DateTime.UtcNow;
         payment.Captures ??= new List<Capture>();
         payment.Captures.Add(new Capture
         {
-            TransactionId = tx.TransactionId,
+            TransactionId = transaction.TransactionId,
             Amount = payment.Sum,
             Currency = payment.Currency,
             CreatedDate = DateTime.UtcNow,
-            OuterId = tx.TransactionId,
+            OuterId = transaction.TransactionId,
         });
 
-        var note = $"Transaction ID: {tx.TransactionId}";
-        if (!string.IsNullOrEmpty(tx.MerchantId))
+        var note = $"Transaction ID: {transaction.TransactionId}";
+        if (!string.IsNullOrEmpty(transaction.MerchantId))
         {
-            note += $", Merchant ID: {tx.MerchantId}";
+            note += $", Merchant ID: {transaction.MerchantId}";
         }
 
         payment.Comment = $"Paid successfully via Datatrans. {note}{Environment.NewLine}";
         order.Status = "Processing";
 
-        var transaction = new PaymentGatewayTransaction
+        var paymentGatewayTransaction = new PaymentGatewayTransaction
         {
             IsProcessed = true,
             ProcessedDate = DateTime.UtcNow,
             CurrencyCode = payment.Currency,
             Amount = payment.Sum,
             Note = note,
-            ResponseData = JsonConvert.SerializeObject(tx)
+            ResponseData = JsonConvert.SerializeObject(transaction),
         };
 
         payment.Transactions ??= new List<PaymentGatewayTransaction>();
-        payment.Transactions.Add(transaction);
+        payment.Transactions.Add(paymentGatewayTransaction);
 
         return result;
     }
 
-    private static PostProcessPaymentRequestResult PaymentDeclined(DatatransTransaction tx, PaymentIn payment)
+    private static PostProcessPaymentRequestResult PaymentDeclined(DatatransTransaction transaction, PaymentIn payment)
     {
-        var msg = tx.Error != null ? JsonConvert.SerializeObject(tx.Error) : "Invalid Datatrans response";
-        var errorMessage = $"Your transaction was declined: {msg}";
+        var error = transaction.Error != null ? JsonConvert.SerializeObject(transaction.Error) : "Invalid Datatrans response";
+        var errorMessage = $"Your transaction was declined: {error}";
 
-        payment.Status = PaymentStatus.Declined.ToString();
+        payment.Status = nameof(PaymentStatus.Declined);
         payment.ProcessPaymentResult = new ProcessPaymentRequestResult { ErrorMessage = errorMessage };
         payment.Comment = $"{errorMessage}{Environment.NewLine}";
 
@@ -432,29 +431,29 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         };
     }
 
-    private static PostProcessPaymentRequestResult PaymentPending(DatatransTransaction tx, PaymentIn payment)
+    private static PostProcessPaymentRequestResult PaymentPending(DatatransTransaction transaction, PaymentIn payment)
     {
-        var msg = tx.Error != null ? JsonConvert.SerializeObject(tx.Error) : "Invalid Datatrans response";
-        var errorMessage = $"Your transaction is pending: {msg}";
+        var error = transaction.Error != null ? JsonConvert.SerializeObject(transaction.Error) : "Invalid Datatrans response";
+        var errorMessage = $"Your transaction is pending: {error}";
 
         payment.ProcessPaymentResult = new ProcessPaymentRequestResult { ErrorMessage = errorMessage };
         payment.Comment = $"{errorMessage}{Environment.NewLine}";
-        payment.OuterId ??= tx.TransactionId;
+        payment.OuterId ??= transaction.TransactionId;
 
         return new PostProcessPaymentRequestResult
         {
             ErrorMessage = errorMessage,
             IsSuccess = true,
-            OuterId = tx.TransactionId
+            OuterId = transaction.TransactionId,
         };
     }
 
-    private static PostProcessPaymentRequestResult PaymentInvalid(DatatransTransaction tx, PaymentIn payment)
+    private static PostProcessPaymentRequestResult PaymentInvalid(DatatransTransaction transaction, PaymentIn payment)
     {
-        var msg = tx.Error != null ? JsonConvert.SerializeObject(tx.Error) : "Invalid Datatrans response";
-        var errorMessage = $"There was an error processing your transaction: {msg}";
+        var error = transaction.Error != null ? JsonConvert.SerializeObject(transaction.Error) : "Invalid Datatrans response";
+        var errorMessage = $"There was an error processing your transaction: {error}";
 
-        payment.Status = PaymentStatus.Error.ToString();
+        payment.Status = nameof(PaymentStatus.Error);
         payment.ProcessPaymentResult = new ProcessPaymentRequestResult { ErrorMessage = errorMessage };
         payment.Comment = $"{errorMessage}{Environment.NewLine}";
 
@@ -472,7 +471,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
             "canceled" => PaymentStatus.Voided,
             "transmitted" => PaymentStatus.Pending,
             "failed" => PaymentStatus.Declined,
-            _ => PaymentStatus.Error
+            _ => PaymentStatus.Error,
         };
     }
 
