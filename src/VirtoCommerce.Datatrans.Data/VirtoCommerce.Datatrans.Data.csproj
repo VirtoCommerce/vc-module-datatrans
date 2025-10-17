@@ -13,7 +13,4 @@
   <ItemGroup>
     <ProjectReference Include="..\VirtoCommerce.Datatrans.Core\VirtoCommerce.Datatrans.Core.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Extensions\" />
-  </ItemGroup>
 </Project>
