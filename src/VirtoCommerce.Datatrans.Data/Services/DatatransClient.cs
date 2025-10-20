@@ -1,28 +1,21 @@
 using System;
 using System.Net.Http;
 using System.Text;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using VirtoCommerce.Datatrans.Core.Models;
+using VirtoCommerce.Datatrans.Core.Models.External;
 using VirtoCommerce.Datatrans.Core.Services;
 using VirtoCommerce.Platform.Core.Common;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace VirtoCommerce.Datatrans.Data.Services;
 
 public class DatatransClient(IHttpClientFactory httpClientFactory, IOptions<DatatransOptions> options) : IDatatransClient
 {
     private readonly DatatransOptions _options = options.Value;
-
-    private static readonly JsonSerializerOptions _json = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-    };
 
     private string BaseStartUrl => _options.UseSandbox ? _options.SandboxStartUrlBase : _options.ProductionStartUrlBase;
     private string SecureScriptUrl => _options.UseSandbox ? _options.SandboxSecureFieldsScriptUrl : _options.ProductionSecureFieldsScriptUrl;
@@ -81,7 +74,7 @@ public class DatatransClient(IHttpClientFactory httpClientFactory, IOptions<Data
 
         if (body is not null)
         {
-            var json = JsonSerializer.Serialize(body, _json);
+            var json = JsonConvert.SerializeObject(body);
             msg.Content = new StringContent(json, Encoding.UTF8, "application/json");
         }
 

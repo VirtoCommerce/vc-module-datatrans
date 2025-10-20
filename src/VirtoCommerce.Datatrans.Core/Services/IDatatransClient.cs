@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using VirtoCommerce.Datatrans.Core.Models;
+using VirtoCommerce.Datatrans.Core.Models.External;
 
 namespace VirtoCommerce.Datatrans.Core.Services;
 

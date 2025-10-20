@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace VirtoCommerce.Datatrans.Core.Models;
+namespace VirtoCommerce.Datatrans.Core.Models.External;
 
 public class DatatransTransaction : DatatransResponseBase
 {

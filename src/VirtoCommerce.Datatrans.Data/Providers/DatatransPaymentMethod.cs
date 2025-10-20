@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using VirtoCommerce.CoreModule.Core.Currency;
-using VirtoCommerce.Datatrans.Core.Models;
+using VirtoCommerce.Datatrans.Core.Models.External;
 using VirtoCommerce.Datatrans.Core.Services;
 using VirtoCommerce.OrdersModule.Core.Model;
 using VirtoCommerce.PaymentModule.Core.Model;
