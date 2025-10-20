@@ -18,24 +18,3 @@ public class DatatransOptions
 
     public DatatransApiRoutes Routes { get; set; } = new();
 }
-
-public class DatatransApiRoutes
-{
-    // POST
-    public string SecureFieldsPath { get; set; } = "/v1/transactions/secureFields";
-
-    // GET
-    public string TransactionPath { get; set; } = "/v1/transactions/{transactionId}";
-
-    // POST
-    public string AuthorizeAuthenticatedPath { get; set; } = "/v1/transactions/{transactionId}/authorize";
-
-    // POST
-    public string CapturePath { get; set; } = "/v1/transactions/{transactionId}/capture";
-
-    // POST
-    public string VoidPath { get; set; } = "/v1/transactions/{transactionId}/cancel";
-
-    // POST
-    public string RefundPath { get; set; } = "/v1/transactions/{transactionId}/credit";
-}

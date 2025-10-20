@@ -1,7 +1,6 @@
 using System;
 using System.Net.Http;
 using System.Text;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
@@ -29,41 +28,41 @@ public class DatatransClient(IHttpClientFactory httpClientFactory, IOptions<Data
 
     public async Task<DatatransInitResponse> InitTransactionAsync(DatatransInitRequest request, CancellationToken cancellationToken = default)
     {
-        var resp = await SendAsync(HttpMethod.Post, _options.Routes.SecureFieldsPath, request, cancellationToken);
+        var resp = await SendAsync(HttpMethod.Post, _options.Routes.GetSecureFieldsPath(), request, cancellationToken);
         return ParseResponse<DatatransInitResponse>(resp);
     }
 
     public async Task<DatatransTransaction> GetTransactionAsync(string transactionId, CancellationToken cancellationToken = default)
     {
-        var path = _options.Routes.TransactionPath.Replace("{transactionId}", Uri.EscapeDataString(transactionId));
+        var path = _options.Routes.GetTransactionPath(transactionId);
         var resp = await SendAsync(HttpMethod.Get, path, null, cancellationToken);
         return ParseResponse<DatatransTransaction>(resp);
     }
 
     public async Task<DatatransAuthorizeResponse> AuthorizeAuthenticatedAsync(string transactionId, DatatransAuthorizeAuthenticatedRequest request, CancellationToken cancellationToken = default)
     {
-        var path = _options.Routes.AuthorizeAuthenticatedPath.Replace("{transactionId}", Uri.EscapeDataString(transactionId));
+        var path = _options.Routes.GetAuthorizeAuthenticatedPath(transactionId);
         var resp = await SendAsync(HttpMethod.Post, path, request, cancellationToken);
         return ParseResponse<DatatransAuthorizeResponse>(resp);
     }
 
     public async Task<DatatransCaptureResponse> CaptureAsync(string transactionId, DatatransCaptureRequest request, CancellationToken cancellationToken = default)
     {
-        var path = _options.Routes.CapturePath.Replace("{transactionId}", Uri.EscapeDataString(transactionId));
+        var path = _options.Routes.GetCapturePath(transactionId);
         var resp = await SendAsync(HttpMethod.Post, path, request, cancellationToken);
         return ParseResponse<DatatransCaptureResponse>(resp);
     }
 
     public async Task<DatatransVoidResponse> VoidAsync(string transactionId, CancellationToken cancellationToken = default)
     {
-        var path = _options.Routes.VoidPath.Replace("{transactionId}", Uri.EscapeDataString(transactionId));
+        var path = _options.Routes.GetVoidPath(transactionId);
         var resp = await SendAsync(HttpMethod.Post, path, new { }, cancellationToken);
         return ParseResponse<DatatransVoidResponse>(resp);
     }
 
     public async Task<DatatransRefundResponse> RefundAsync(string transactionId, DatatransRefundRequest request, CancellationToken cancellationToken = default)
     {
-        var path = _options.Routes.RefundPath.Replace("{transactionId}", Uri.EscapeDataString(transactionId));
+        var path = _options.Routes.GetRefundPath(transactionId);
         var resp = await SendAsync(HttpMethod.Post, path, request, cancellationToken);
         return ParseResponse<DatatransRefundResponse>(resp);
     }
