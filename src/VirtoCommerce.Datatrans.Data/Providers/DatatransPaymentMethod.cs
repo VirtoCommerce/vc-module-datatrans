@@ -290,8 +290,8 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         result.Currency = payment.Currency ?? order.Currency;
 
         var returnUrl = Settings.GetValue<string>(ModuleConstants.Settings.General.ReturnUrl)
-            ?.Replace("{orderId}", order.Id)
-            ?.TrimStart('/');
+            .Replace("{orderId}", order.Id)
+            .TrimStart('/');
 
         result.ReturnUrl = $"{url}/{returnUrl}";
 
