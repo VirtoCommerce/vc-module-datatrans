@@ -17,12 +17,20 @@ public static class ModuleConstants
                 DefaultValue = true,
             };
 
+            public static SettingDescriptor ReturnUrl { get; } = new()
+            {
+                Name = "VirtoCommerce.Payment.Datatrans.ReturnUrl",
+                GroupName = "Payment|Datatrans",
+                ValueType = SettingValueType.ShortText,
+                DefaultValue = "/account/orders/{orderId}/payment",
+            };
 
             public static IEnumerable<SettingDescriptor> AllGeneralSettings
             {
                 get
                 {
                     yield return Sandbox;
+                    yield return ReturnUrl;
                 }
             }
         }

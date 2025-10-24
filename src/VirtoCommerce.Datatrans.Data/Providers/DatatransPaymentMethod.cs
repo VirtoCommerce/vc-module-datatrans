@@ -6,12 +6,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using VirtoCommerce.CoreModule.Core.Currency;
+using VirtoCommerce.Datatrans.Core;
 using VirtoCommerce.Datatrans.Core.Models.External;
 using VirtoCommerce.Datatrans.Core.Services;
 using VirtoCommerce.OrdersModule.Core.Model;
 using VirtoCommerce.PaymentModule.Core.Model;
 using VirtoCommerce.PaymentModule.Model.Requests;
 using VirtoCommerce.Platform.Core.Common;
+using VirtoCommerce.Platform.Core.Settings;
 using VirtoCommerce.StoreModule.Core.Model;
 
 namespace VirtoCommerce.Datatrans.Data.Providers;
@@ -286,7 +288,12 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         var result = AbstractTypeFactory<DatatransInitRequest>.TryCreateInstance();
         result.Amount = await ToMinorUnits(payment.Currency, payment.Sum);
         result.Currency = payment.Currency ?? order.Currency;
-        result.ReturnUrl = $"{url}/account/orders/{order.Id}/payment";
+
+        var returnUrl = Settings.GetValue<string>(ModuleConstants.Settings.General.ReturnUrl)
+            ?.Replace("{orderId}", order.Id)
+            ?.TrimStart('/');
+
+        result.ReturnUrl = $"{url}/{returnUrl}";
 
         return result;
     }
