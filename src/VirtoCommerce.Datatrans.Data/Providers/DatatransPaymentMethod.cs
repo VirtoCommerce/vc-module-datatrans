@@ -307,13 +307,17 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
             IsSuccess = initResponse.Error == null,
             NewPaymentStatus = payment.PaymentStatus,
             ErrorMessage = initResponse.Error?.Message,
-            PublicParameters = new()
+        };
+
+        if (result.IsSuccess)
+        {
+            result.PublicParameters = new()
             {
                 ["transactionId"] = initResponse.TransactionId,
                 ["clientScript"] = datatransClient.GetSecureFieldsScriptUrl(),
                 ["startUrl"] = datatransClient.BuildStartPaymentUri(initResponse.TransactionId).ToString(),
-            },
-        };
+            };
+        }
 
         return Task.FromResult(result);
     }

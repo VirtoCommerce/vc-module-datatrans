@@ -21,6 +21,11 @@ public class DatatransClient(IHttpClientFactory httpClientFactory, IOptions<Data
 
     public Uri BuildStartPaymentUri(string transactionId)
     {
+        if (transactionId.IsNullOrEmpty())
+        {
+            throw new ArgumentException("Value cannot be null or empty.", nameof(transactionId));
+        }
+
         return new Uri($"{BaseStartUrl}{Uri.EscapeDataString(transactionId)}");
     }
 
