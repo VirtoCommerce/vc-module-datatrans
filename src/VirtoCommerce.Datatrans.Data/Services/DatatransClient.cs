@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using VirtoCommerce.Datatrans.Core.Models;
 using VirtoCommerce.Datatrans.Core.Models.External;
 using VirtoCommerce.Datatrans.Core.Services;
@@ -14,6 +15,12 @@ namespace VirtoCommerce.Datatrans.Data.Services;
 
 public class DatatransClient(IHttpClientFactory httpClientFactory, IOptions<DatatransOptions> options) : IDatatransClient
 {
+    private static readonly JsonSerializerSettings _serializerSettings = new()
+    {
+        ContractResolver = new CamelCasePropertyNamesContractResolver(),
+        NullValueHandling = NullValueHandling.Ignore
+    };
+
     private readonly DatatransOptions _options = options.Value;
 
     private string BaseStartUrl => _options.UseSandbox ? _options.SandboxStartUrlBase : _options.ProductionStartUrlBase;
@@ -78,7 +85,7 @@ public class DatatransClient(IHttpClientFactory httpClientFactory, IOptions<Data
 
         if (body is not null)
         {
-            var json = JsonConvert.SerializeObject(body);
+            var json = JsonConvert.SerializeObject(body, _serializerSettings);
             msg.Content = new StringContent(json, Encoding.UTF8, "application/json");
         }
 
