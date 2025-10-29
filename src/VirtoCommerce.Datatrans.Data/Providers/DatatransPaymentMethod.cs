@@ -286,8 +286,11 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         var url = (store.SecureUrl.IsNullOrEmpty() ? store.Url : store.SecureUrl)?.TrimEnd('/');
 
         var result = AbstractTypeFactory<DatatransInitRequest>.TryCreateInstance();
-        result.Amount = await ToMinorUnits(payment.Currency, payment.Sum);
-        result.Currency = payment.Currency ?? order.Currency;
+
+        var currency = payment.Currency.EmptyToNull() ?? order.Currency;
+
+        result.Amount = await ToMinorUnits(currency, payment.Sum);
+        result.Currency = currency;
 
         var returnUrl = Settings.GetValue<string>(ModuleConstants.Settings.General.ReturnUrl)
             .Replace("{orderId}", order.Id)
