@@ -351,8 +351,10 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
     private async Task<long> ToMinorUnits(string currencyCode, decimal amount)
     {
         const int @base = 10;
-        var currency = (await currencyService.GetAllCurrenciesAsync()).First(x => x.Code == currencyCode);
-        var multiplier = (decimal)Math.Pow(@base, currency.DecimalDigits); // 1, 100, or 1000
+        var currency = (await currencyService.GetAllCurrenciesAsync()).FirstOrDefault(x => x.Code.EqualsIgnoreCase(currencyCode));
+        var multiplier = currency != null
+            ? (decimal)Math.Pow(@base, currency.DecimalDigits) // 1, 100, or 1000
+            : 100m;
 
         return (long)Math.Round(amount * multiplier, MidpointRounding.AwayFromZero);
     }
