@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -353,13 +354,32 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
     private async Task<long> ToMinorUnits(string currencyCode, decimal amount)
     {
-        const int @base = 10;
-        var currency = (await currencyService.GetAllCurrenciesAsync()).FirstOrDefault(x => x.Code.EqualsIgnoreCase(currencyCode));
-        var multiplier = currency != null
-            ? (decimal)Math.Pow(@base, currency.DecimalDigits) // 1, 100, or 1000
-            : 100m;
-
+        var multiplier = await GetMultiplier(currencyCode);
         return (long)Math.Round(amount * multiplier, MidpointRounding.AwayFromZero);
+    }
+
+    private async Task<decimal> GetMultiplier(string currencyCode)
+    {
+        const int @base = 10;
+        int digits;
+
+        var culture = CultureInfo
+            .GetCultures(CultureTypes.SpecificCultures)
+            .Select(c => new { c, Region = new RegionInfo(c.LCID) })
+            .FirstOrDefault(x => x.Region.ISOCurrencySymbol == currencyCode);
+
+        if (culture != null)
+        {
+            digits = culture.c.NumberFormat.CurrencyDecimalDigits;
+        }
+        else
+        {
+            var currency = (await currencyService.GetAllCurrenciesAsync()).FirstOrDefault(x => x.Code.EqualsIgnoreCase(currencyCode));
+            digits = currency?.DecimalDigits ?? 2;
+        }
+
+        var multiplier = (decimal)Math.Pow(@base, digits); // 1, 100, or 1000
+        return multiplier;
     }
 
     #endregion
