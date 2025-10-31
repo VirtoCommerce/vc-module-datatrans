@@ -190,7 +190,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
         payment.OuterId = transactionId;
 
-        if (response.Error != null)
+        if (response.Error == null)
         {
             transaction = await datatransClient.GetTransactionAsync(transactionId);
             payment.PaymentStatus = ConvertStatus(transaction.Status);
@@ -257,7 +257,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
         var response = await datatransClient.RefundAsync(transactionId, request);
 
-        if (response.Error != null)
+        if (response.Error == null)
         {
             transaction = await datatransClient.GetTransactionAsync(transactionId);
             payment.PaymentStatus = ConvertStatus(transaction.Status);
