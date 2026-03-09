@@ -1,0 +1,22 @@
+{
+  "payment": {
+    "labels": {
+      "DatatransPaymentMethod": {
+        "name": "Datatrans",
+        "description": "Integracja z Datatrans"
+      }
+    }
+  },
+  "settings": {
+    "VirtoCommerce.Payment.Datatrans": {
+      "Sandbox": {
+        "title": "Sandbox",
+        "description": "Tryb bramki płatności Datatrans (testowy lub produkcyjny)"
+      },
+      "ReturnUrl": {
+        "title": "URL powrotu",
+        "description": "URL przekierowania po zakończeniu płatności. Użyj symbolu zastępczego {orderId} dla identyfikatora zamówienia"
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "payment": {
+    "labels": {
+      "DatatransPaymentMethod": {
+        "name": "Datatrans",
+        "description": "Intégration Datatrans"
+      }
+    }
+  },
+  "settings": {
+    "VirtoCommerce.Payment.Datatrans": {
+      "Sandbox": {
+        "title": "Sandbox",
+        "description": "Mode de la passerelle de paiement Datatrans (test ou production)"
+      },
+      "ReturnUrl": {
+        "title": "URL de retour",
+        "description": "URL de redirection après la finalisation du paiement. Utilisez l'espace réservé {orderId} pour l'ID de commande"
+      }
+    }
+  }
+}

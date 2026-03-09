@@ -1,0 +1,22 @@
+{
+  "payment": {
+    "labels": {
+      "DatatransPaymentMethod": {
+        "name": "Datatrans",
+        "description": "Datatrans-integraatio"
+      }
+    }
+  },
+  "settings": {
+    "VirtoCommerce.Payment.Datatrans": {
+      "Sandbox": {
+        "title": "Sandbox",
+        "description": "Datatrans-maksuyhdyskäytävän tila (testi tai tuotanto)"
+      },
+      "ReturnUrl": {
+        "title": "Paluu-URL",
+        "description": "URL, johon ohjataan maksun suorittamisen jälkeen. Käytä {orderId}-paikkamerkkiä tilaus-ID:lle"
+      }
+    }
+  }
+}
