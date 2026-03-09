@@ -1,0 +1,22 @@
+{
+  "payment": {
+    "labels": {
+      "DatatransPaymentMethod": {
+        "name": "Datatrans",
+        "description": "Datatrans連携"
+      }
+    }
+  },
+  "settings": {
+    "VirtoCommerce.Payment.Datatrans": {
+      "Sandbox": {
+        "title": "サンドボックス",
+        "description": "Datatrans決済ゲートウェイのモード（テストまたは本番）"
+      },
+      "ReturnUrl": {
+        "title": "リターンURL",
+        "description": "決済完了後のリダイレクトURL。注文IDには{orderId}プレースホルダーを使用してください"
+      }
+    }
+  }
+}

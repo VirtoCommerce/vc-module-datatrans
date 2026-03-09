@@ -1,0 +1,22 @@
+{
+  "payment": {
+    "labels": {
+      "DatatransPaymentMethod": {
+        "name": "Datatrans",
+        "description": "Datatrans-integration"
+      }
+    }
+  },
+  "settings": {
+    "VirtoCommerce.Payment.Datatrans": {
+      "Sandbox": {
+        "title": "Sandbox",
+        "description": "Läge för Datatrans betalningsgateway (test eller produktion)"
+      },
+      "ReturnUrl": {
+        "title": "Retur-URL",
+        "description": "URL för omdirigering efter slutförd betalning. Använd platshållaren {orderId} för order-ID"
+      }
+    }
+  }
+}

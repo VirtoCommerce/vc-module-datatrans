@@ -1,0 +1,22 @@
+{
+  "payment": {
+    "labels": {
+      "DatatransPaymentMethod": {
+        "name": "Datatrans",
+        "description": "Интеграция с Datatrans"
+      }
+    }
+  },
+  "settings": {
+    "VirtoCommerce.Payment.Datatrans": {
+      "Sandbox": {
+        "title": "Песочница",
+        "description": "Режим платёжного шлюза Datatrans (тестовый или рабочий)"
+      },
+      "ReturnUrl": {
+        "title": "URL возврата",
+        "description": "URL перенаправления после завершения оплаты. Используйте заполнитель {orderId} для идентификатора заказа"
+      }
+    }
+  }
+}

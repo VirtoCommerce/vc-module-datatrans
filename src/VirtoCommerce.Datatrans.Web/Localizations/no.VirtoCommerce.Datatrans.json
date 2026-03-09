@@ -1,0 +1,22 @@
+{
+  "payment": {
+    "labels": {
+      "DatatransPaymentMethod": {
+        "name": "Datatrans",
+        "description": "Datatrans-integrasjon"
+      }
+    }
+  },
+  "settings": {
+    "VirtoCommerce.Payment.Datatrans": {
+      "Sandbox": {
+        "title": "Sandbox",
+        "description": "Modus for Datatrans betalingsgateway (test eller produksjon)"
+      },
+      "ReturnUrl": {
+        "title": "Retur-URL",
+        "description": "URL for omdirigering etter fullført betaling. Bruk plassholderen {orderId} for ordre-ID"
+      }
+    }
+  }
+}

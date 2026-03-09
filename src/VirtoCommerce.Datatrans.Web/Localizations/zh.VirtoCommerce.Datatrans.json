@@ -1,0 +1,22 @@
+{
+  "payment": {
+    "labels": {
+      "DatatransPaymentMethod": {
+        "name": "Datatrans",
+        "description": "Datatrans集成"
+      }
+    }
+  },
+  "settings": {
+    "VirtoCommerce.Payment.Datatrans": {
+      "Sandbox": {
+        "title": "沙盒",
+        "description": "Datatrans支付网关模式（测试或生产）"
+      },
+      "ReturnUrl": {
+        "title": "返回URL",
+        "description": "支付完成后的重定向URL。使用{orderId}占位符表示订单ID"
+      }
+    }
+  }
+}

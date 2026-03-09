@@ -12,6 +12,10 @@
       "Sandbox": {
         "title": "Sandbox",
         "description": "Mode of Datatrans payment gateway (test or real)"
+      },
+      "ReturnUrl": {
+        "title": "Return URL",
+        "description": "URL to redirect after payment completion. Use {orderId} placeholder for the order ID"
       }
     }
   }

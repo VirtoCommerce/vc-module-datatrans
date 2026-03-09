@@ -1,0 +1,22 @@
+{
+  "payment": {
+    "labels": {
+      "DatatransPaymentMethod": {
+        "name": "Datatrans",
+        "description": "Integração com Datatrans"
+      }
+    }
+  },
+  "settings": {
+    "VirtoCommerce.Payment.Datatrans": {
+      "Sandbox": {
+        "title": "Sandbox",
+        "description": "Modo do gateway de pagamento Datatrans (teste ou produção)"
+      },
+      "ReturnUrl": {
+        "title": "URL de retorno",
+        "description": "URL de redirecionamento após a conclusão do pagamento. Use o marcador {orderId} para o ID do pedido"
+      }
+    }
+  }
+}
