@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using VirtoCommerce.CartModule.Core.Model;
 using VirtoCommerce.CoreModule.Core.Currency;
 using VirtoCommerce.Datatrans.Core;
 using VirtoCommerce.Datatrans.Core.Models.External;
@@ -161,6 +162,8 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         var payment = (PaymentIn)context.Payment;
         var transactionId = GetTransactionId(context);
 
+        var airlineData = context.Parameters?.Get("airlineData");
+
         var alreadyCaptured = payment.Captures.Sum(x => x.Amount);
         var total = payment.Sum;
 
@@ -184,6 +187,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
             Amount = amountMinor,
             Currency = payment.Currency,
             Refno = transaction.Refno,
+            AirlineData = airlineData
         };
 
         var response = await datatransClient.CaptureAsync(transactionId, captureRequest);
@@ -409,14 +413,14 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         payment.Captures ??= new List<Capture>();
         if (newStatus != PaymentStatus.Authorized)
         {
-        payment.Captures.Add(new Capture
-        {
-            TransactionId = transaction.TransactionId,
-            Amount = payment.Sum,
-            Currency = payment.Currency,
-            CreatedDate = DateTime.UtcNow,
-            OuterId = transaction.TransactionId,
-        });
+            payment.Captures.Add(new Capture
+            {
+                TransactionId = transaction.TransactionId,
+                Amount = payment.Sum,
+                Currency = payment.Currency,
+                CreatedDate = DateTime.UtcNow,
+                OuterId = transaction.TransactionId,
+            });
         }
 
         var note = $"Transaction ID: {transaction.TransactionId}";
