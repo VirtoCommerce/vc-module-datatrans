@@ -12,7 +12,7 @@ public class DatatransApiRoutes
     public string GetAuthorizeAuthenticatedPath(string transactionId) => $"/v1/transactions/{transactionId}/authorize";
 
     // POST
-    public string GetCapturePath(string transactionId) => $"/v1/transactions/{transactionId}/capture";
+    public string GetCapturePath(string transactionId) => $"/v1/transactions/{transactionId}/settle";
 
     // POST
     public string GetVoidPath(string transactionId) => $"/v1/transactions/{transactionId}/cancel";
