@@ -204,7 +204,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
             payment.Captures.Add(new Capture
             {
                 TransactionId = transaction.TransactionId,
-                Amount = payment.Sum,
+                Amount = amountToCapture,
                 Currency = payment.Currency,
                 CreatedDate = DateTime.UtcNow,
                 OuterId = transaction.TransactionId,
