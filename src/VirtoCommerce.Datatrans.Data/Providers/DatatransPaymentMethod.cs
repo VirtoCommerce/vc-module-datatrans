@@ -195,6 +195,16 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
             transaction = await datatransClient.GetTransactionAsync(transactionId);
             payment.PaymentStatus = ConvertStatus(transaction.Status);
             payment.CapturedDate ??= DateTime.UtcNow;
+
+            payment.Captures ??= new List<Capture>();
+            payment.Captures.Add(new Capture
+            {
+                TransactionId = transaction.TransactionId,
+                Amount = payment.Sum,
+                Currency = payment.Currency,
+                CreatedDate = DateTime.UtcNow,
+                OuterId = transaction.TransactionId,
+            });
         }
         else
         {
@@ -397,6 +407,8 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
         payment.CapturedDate ??= DateTime.UtcNow;
         payment.Captures ??= new List<Capture>();
+        if (newStatus != PaymentStatus.Authorized)
+        {
         payment.Captures.Add(new Capture
         {
             TransactionId = transaction.TransactionId,
@@ -405,6 +417,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
             CreatedDate = DateTime.UtcNow,
             OuterId = transaction.TransactionId,
         });
+        }
 
         var note = $"Transaction ID: {transaction.TransactionId}";
         if (!string.IsNullOrEmpty(transaction.MerchantId))
