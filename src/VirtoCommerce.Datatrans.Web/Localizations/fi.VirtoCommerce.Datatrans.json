@@ -16,6 +16,18 @@
       "ReturnUrl": {
         "title": "Paluu-URL",
         "description": "URL, johon ohjataan maksun suorittamisen jälkeen. Käytä {orderId}-paikkamerkkiä tilaus-ID:lle"
+      },
+      "PaymentMode": {
+        "title": "Maksutapa",
+        "description": "Valitse maksutapa: SecureFields (upotettu korttilomake) tai Lightbox (ponnahdusikkuna)"
+      },
+      "LightboxPaymentMethods": {
+        "title": "Lightbox-maksutavat",
+        "description": "Pilkuilla eroteltu lista maksutapakoodeja Lightbox-näkymään (esim. VIS,ECA,PAP,TWI). Jätä tyhjäksi näyttääksesi kaikki käytettävissä olevat tavat"
+      },
+      "LightboxAutoSettle": {
+        "title": "Lightbox automaattinen tilitys",
+        "description": "Tilitä tapahtumat automaattisesti valtuutuksen jälkeen Lightbox-tilassa"
       }
     }
   }

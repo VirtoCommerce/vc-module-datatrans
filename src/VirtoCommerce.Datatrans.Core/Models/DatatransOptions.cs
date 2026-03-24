@@ -8,6 +8,9 @@ public class DatatransOptions
     public string SandboxSecureFieldsScriptUrl { get; set; } = "https://pay.sandbox.datatrans.com/upp/payment/js/secure-fields-2.0.0.min.js";
     public string ProductionSecureFieldsScriptUrl { get; set; } = "https://pay.datatrans.com/upp/payment/js/secure-fields-2.0.0.min.js";
 
+    public string SandboxLightboxScriptUrl { get; set; } = "https://pay.sandbox.datatrans.com/upp/payment/js/datatrans-2.0.0.js";
+    public string ProductionLightboxScriptUrl { get; set; } = "https://pay.datatrans.com/upp/payment/js/datatrans-2.0.0.js";
+
     public string SandboxStartUrlBase { get; set; } = "https://pay.sandbox.datatrans.com/v1/start/";
     public string ProductionStartUrlBase { get; set; } = "https://pay.datatrans.com/v1/start/";
 

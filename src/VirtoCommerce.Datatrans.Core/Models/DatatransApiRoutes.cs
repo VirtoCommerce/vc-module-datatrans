@@ -2,8 +2,11 @@ namespace VirtoCommerce.Datatrans.Core.Models;
 
 public class DatatransApiRoutes
 {
-    // POST
+    // POST - Secure Fields transaction init
     public string GetSecureFieldsPath() => "/v1/transactions/secureFields";
+
+    // POST - Lightbox/Redirect transaction init
+    public string GetInitTransactionPath() => "/v1/transactions";
 
     // GET
     public string GetTransactionPath(string transactionId) => $"/v1/transactions/{transactionId}";

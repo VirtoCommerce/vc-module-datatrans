@@ -16,6 +16,18 @@
       "ReturnUrl": {
         "title": "Rückgabe-URL",
         "description": "URL zur Weiterleitung nach Abschluss der Zahlung. Verwenden Sie den Platzhalter {orderId} für die Bestell-ID"
+      },
+      "PaymentMode": {
+        "title": "Zahlungsmodus",
+        "description": "Zahlungsmodus auswählen: SecureFields (Inline-Kartenformular) oder Lightbox (Popup-Overlay)"
+      },
+      "LightboxPaymentMethods": {
+        "title": "Lightbox-Zahlungsmethoden",
+        "description": "Kommagetrennte Liste der Zahlungsmethoden-Codes für die Lightbox-Anzeige (z. B. VIS,ECA,PAP,TWI). Leer lassen, um alle verfügbaren Methoden anzuzeigen"
+      },
+      "LightboxAutoSettle": {
+        "title": "Lightbox automatische Abrechnung",
+        "description": "Transaktionen nach der Autorisierung im Lightbox-Modus automatisch abrechnen"
       }
     }
   }
