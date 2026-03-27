@@ -16,6 +16,18 @@
       "ReturnUrl": {
         "title": "Return URL",
         "description": "URL to redirect after payment completion. Use {orderId} placeholder for the order ID"
+      },
+      "PaymentMode": {
+        "title": "Payment mode",
+        "description": "Select the payment mode: SecureFields (inline card form) or Lightbox (popup overlay)"
+      },
+      "LightboxPaymentMethods": {
+        "title": "Lightbox payment methods",
+        "description": "Comma-separated list of payment method codes to display in Lightbox (e.g., VIS,ECA,PAP,TWI). Leave empty to show all available methods"
+      },
+      "LightboxAutoSettle": {
+        "title": "Lightbox auto-settle",
+        "description": "Automatically settle transactions after authorization when using Lightbox mode"
       }
     }
   }

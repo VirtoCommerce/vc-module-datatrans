@@ -53,7 +53,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
     public override ValidatePostProcessRequestResult ValidatePostProcessRequest(NameValueCollection queryString)
     {
-        var transactionId = queryString["transactionId"];
+        var transactionId = queryString["transactionId"] ?? queryString["datatransTrxId"];
 
         var result = new ValidatePostProcessRequestResult
         {
@@ -73,7 +73,11 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         var payment = (PaymentIn)request.Payment;
 
         var initRequest = await CreateInitRequest(request);
-        var initResponse = await datatransClient.InitTransactionAsync(initRequest);
+        var isLightbox = IsLightboxMode();
+
+        var initResponse = isLightbox
+            ? await datatransClient.InitLightboxTransactionAsync(initRequest)
+            : await datatransClient.InitTransactionAsync(initRequest);
 
         var success = initResponse.Error is null && !initResponse.TransactionId.IsNullOrEmpty();
 
@@ -86,7 +90,8 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
     protected virtual async Task<PostProcessPaymentRequestResult> PostProcessPaymentAsync(PostProcessPaymentRequest request, CancellationToken cancellationToken = default)
     {
-        var transactionId = request.Parameters?.Get("transactionId");
+        var transactionId = request.Parameters?.Get("transactionId")
+            ?? request.Parameters?.Get("datatransTrxId");
 
         if (transactionId.IsNullOrEmpty())
         {
@@ -310,7 +315,39 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
             .Replace("{orderId}", order.Id)
             .TrimStart('/');
 
-        result.ReturnUrl = $"{url}/{returnUrl}";
+        var fullReturnUrl = $"{url}/{returnUrl}";
+
+        if (IsLightboxMode())
+        {
+            // Lightbox uses redirect object instead of returnUrl/returnMethod
+            result.Refno = order.Number ?? order.Id;
+
+            var paymentMethodsSetting = Settings.GetValue<string>(ModuleConstants.Settings.General.LightboxPaymentMethods);
+            if (!paymentMethodsSetting.IsNullOrEmpty())
+            {
+                result.PaymentMethods = paymentMethodsSetting
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            }
+
+            var autoSettle = Settings.GetValue<bool>(ModuleConstants.Settings.General.LightboxAutoSettle);
+            if (autoSettle)
+            {
+                result.AutoSettle = true;
+            }
+
+            result.Redirect = new DatatransRedirect
+            {
+                SuccessUrl = fullReturnUrl,
+                CancelUrl = fullReturnUrl,
+                ErrorUrl = fullReturnUrl,
+            };
+        }
+        else
+        {
+            // Secure Fields uses returnUrl/returnMethod
+            result.ReturnUrl = fullReturnUrl;
+            result.ReturnMethod = "GET";
+        }
 
         return result;
     }
@@ -328,11 +365,16 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
         if (result.IsSuccess)
         {
+            var isLightbox = IsLightboxMode();
+
             result.PublicParameters = new()
             {
                 ["transactionId"] = initResponse.TransactionId,
-                ["clientScript"] = datatransClient.GetSecureFieldsScriptUrl(),
+                ["clientScript"] = isLightbox
+                    ? datatransClient.GetLightboxScriptUrl()
+                    : datatransClient.GetSecureFieldsScriptUrl(),
                 ["startUrl"] = datatransClient.BuildStartPaymentUri(initResponse.TransactionId).ToString(),
+                ["paymentMode"] = isLightbox ? "Lightbox" : "SecureFields",
             };
         }
 
@@ -352,6 +394,12 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
     #endregion
 
     #region Helpers
+
+    private bool IsLightboxMode()
+    {
+        var mode = Settings.GetValue<string>(ModuleConstants.Settings.General.PaymentMode);
+        return mode.EqualsIgnoreCase("Lightbox");
+    }
 
     private static string GetTransactionId(PaymentRequestBase context)
     {

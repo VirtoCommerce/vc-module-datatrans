@@ -16,6 +16,18 @@
       "ReturnUrl": {
         "title": "URL powrotu",
         "description": "URL przekierowania po zakończeniu płatności. Użyj symbolu zastępczego {orderId} dla identyfikatora zamówienia"
+      },
+      "PaymentMode": {
+        "title": "Tryb płatności",
+        "description": "Wybierz tryb płatności: SecureFields (wbudowany formularz karty) lub Lightbox (okno wyskakujące)"
+      },
+      "LightboxPaymentMethods": {
+        "title": "Metody płatności Lightbox",
+        "description": "Lista kodów metod płatności oddzielonych przecinkami do wyświetlenia w Lightbox (np. VIS,ECA,PAP,TWI). Pozostaw puste, aby wyświetlić wszystkie dostępne metody"
+      },
+      "LightboxAutoSettle": {
+        "title": "Automatyczne rozliczenie Lightbox",
+        "description": "Automatyczne rozliczanie transakcji po autoryzacji w trybie Lightbox"
       }
     }
   }

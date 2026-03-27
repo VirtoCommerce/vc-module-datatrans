@@ -16,6 +16,18 @@
       "ReturnUrl": {
         "title": "リターンURL",
         "description": "決済完了後のリダイレクトURL。注文IDには{orderId}プレースホルダーを使用してください"
+      },
+      "PaymentMode": {
+        "title": "決済モード",
+        "description": "決済モードを選択: SecureFields（インラインカードフォーム）またはLightbox（ポップアップオーバーレイ）"
+      },
+      "LightboxPaymentMethods": {
+        "title": "Lightbox決済方法",
+        "description": "Lightboxに表示する決済方法コードのカンマ区切りリスト（例：VIS,ECA,PAP,TWI）。空白にするとすべての利用可能な方法が表示されます"
+      },
+      "LightboxAutoSettle": {
+        "title": "Lightbox自動決済",
+        "description": "Lightboxモードでの承認後にトランザクションを自動的に決済する"
       }
     }
   }

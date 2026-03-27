@@ -16,6 +16,18 @@
       "ReturnUrl": {
         "title": "URL возврата",
         "description": "URL перенаправления после завершения оплаты. Используйте заполнитель {orderId} для идентификатора заказа"
+      },
+      "PaymentMode": {
+        "title": "Режим оплаты",
+        "description": "Выберите режим оплаты: SecureFields (встроенная форма карты) или Lightbox (всплывающее окно)"
+      },
+      "LightboxPaymentMethods": {
+        "title": "Методы оплаты Lightbox",
+        "description": "Список кодов методов оплаты через запятую для отображения в Lightbox (например, VIS,ECA,PAP,TWI). Оставьте пустым для отображения всех доступных методов"
+      },
+      "LightboxAutoSettle": {
+        "title": "Автоматическое списание Lightbox",
+        "description": "Автоматически списывать средства после авторизации в режиме Lightbox"
       }
     }
   }

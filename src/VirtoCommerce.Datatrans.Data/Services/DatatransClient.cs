@@ -25,6 +25,7 @@ public class DatatransClient(IHttpClientFactory httpClientFactory, IOptions<Data
 
     private string BaseStartUrl => _options.UseSandbox ? _options.SandboxStartUrlBase : _options.ProductionStartUrlBase;
     private string SecureScriptUrl => _options.UseSandbox ? _options.SandboxSecureFieldsScriptUrl : _options.ProductionSecureFieldsScriptUrl;
+    private string LightboxScriptUrl => _options.UseSandbox ? _options.SandboxLightboxScriptUrl : _options.ProductionLightboxScriptUrl;
 
     public Uri BuildStartPaymentUri(string transactionId)
     {
@@ -38,9 +39,17 @@ public class DatatransClient(IHttpClientFactory httpClientFactory, IOptions<Data
 
     public string GetSecureFieldsScriptUrl() => SecureScriptUrl;
 
+    public string GetLightboxScriptUrl() => LightboxScriptUrl;
+
     public async Task<DatatransInitResponse> InitTransactionAsync(DatatransInitRequest request, CancellationToken cancellationToken = default)
     {
         var resp = await SendAsync(HttpMethod.Post, _options.Routes.GetSecureFieldsPath(), request, cancellationToken);
+        return ParseResponse<DatatransInitResponse>(resp);
+    }
+
+    public async Task<DatatransInitResponse> InitLightboxTransactionAsync(DatatransInitRequest request, CancellationToken cancellationToken = default)
+    {
+        var resp = await SendAsync(HttpMethod.Post, _options.Routes.GetInitTransactionPath(), request, cancellationToken);
         return ParseResponse<DatatransInitResponse>(resp);
     }
 

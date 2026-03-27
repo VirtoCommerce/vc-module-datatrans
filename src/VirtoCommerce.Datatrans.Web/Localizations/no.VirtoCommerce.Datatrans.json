@@ -16,6 +16,18 @@
       "ReturnUrl": {
         "title": "Retur-URL",
         "description": "URL for omdirigering etter fullført betaling. Bruk plassholderen {orderId} for ordre-ID"
+      },
+      "PaymentMode": {
+        "title": "Betalingsmodus",
+        "description": "Velg betalingsmodus: SecureFields (innebygd kortskjema) eller Lightbox (popup-overlegg)"
+      },
+      "LightboxPaymentMethods": {
+        "title": "Lightbox betalingsmetoder",
+        "description": "Kommaseparert liste over betalingsmetodekoder som skal vises i Lightbox (f.eks. VIS,ECA,PAP,TWI). La stå tomt for å vise alle tilgjengelige metoder"
+      },
+      "LightboxAutoSettle": {
+        "title": "Lightbox automatisk oppgjør",
+        "description": "Automatisk oppgjør av transaksjoner etter autorisasjon i Lightbox-modus"
       }
     }
   }

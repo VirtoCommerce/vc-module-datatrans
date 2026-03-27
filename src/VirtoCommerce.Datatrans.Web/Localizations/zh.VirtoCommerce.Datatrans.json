@@ -16,6 +16,18 @@
       "ReturnUrl": {
         "title": "返回URL",
         "description": "支付完成后的重定向URL。使用{orderId}占位符表示订单ID"
+      },
+      "PaymentMode": {
+        "title": "支付模式",
+        "description": "选择支付模式：SecureFields（内嵌卡片表单）或Lightbox（弹出窗口）"
+      },
+      "LightboxPaymentMethods": {
+        "title": "Lightbox支付方式",
+        "description": "在Lightbox中显示的支付方式代码列表，以逗号分隔（例如：VIS,ECA,PAP,TWI）。留空以显示所有可用方式"
+      },
+      "LightboxAutoSettle": {
+        "title": "Lightbox自动结算",
+        "description": "在Lightbox模式下授权后自动结算交易"
       }
     }
   }

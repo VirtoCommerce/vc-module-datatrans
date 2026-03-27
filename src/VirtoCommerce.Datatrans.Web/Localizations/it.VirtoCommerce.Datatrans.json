@@ -16,6 +16,18 @@
       "ReturnUrl": {
         "title": "URL di ritorno",
         "description": "URL di reindirizzamento dopo il completamento del pagamento. Utilizzare il segnaposto {orderId} per l'ID dell'ordine"
+      },
+      "PaymentMode": {
+        "title": "Modalità di pagamento",
+        "description": "Seleziona la modalità di pagamento: SecureFields (modulo carta integrato) o Lightbox (finestra popup)"
+      },
+      "LightboxPaymentMethods": {
+        "title": "Metodi di pagamento Lightbox",
+        "description": "Elenco separato da virgole dei codici dei metodi di pagamento da visualizzare nella Lightbox (es. VIS,ECA,PAP,TWI). Lasciare vuoto per mostrare tutti i metodi disponibili"
+      },
+      "LightboxAutoSettle": {
+        "title": "Regolamento automatico Lightbox",
+        "description": "Regolare automaticamente le transazioni dopo l'autorizzazione in modalità Lightbox"
       }
     }
   }
