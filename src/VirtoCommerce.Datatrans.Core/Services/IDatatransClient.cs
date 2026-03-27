@@ -9,6 +9,8 @@ public interface IDatatransClient
 {
     Task<DatatransInitResponse> InitTransactionAsync(DatatransInitRequest request, CancellationToken cancellationToken = default);
 
+    Task<DatatransInitResponse> InitLightboxTransactionAsync(DatatransInitRequest request, CancellationToken cancellationToken = default);
+
     Task<DatatransTransaction> GetTransactionAsync(string transactionId, CancellationToken cancellationToken = default);
 
     Task<DatatransAuthorizeResponse> AuthorizeAuthenticatedAsync(string transactionId, DatatransAuthorizeAuthenticatedRequest request, CancellationToken cancellationToken = default);
@@ -22,4 +24,6 @@ public interface IDatatransClient
     Uri BuildStartPaymentUri(string transactionId);
 
     string GetSecureFieldsScriptUrl();
+
+    string GetLightboxScriptUrl();
 }
