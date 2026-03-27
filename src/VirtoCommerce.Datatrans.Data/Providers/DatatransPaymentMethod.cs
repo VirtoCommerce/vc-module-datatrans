@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using VirtoCommerce.CartModule.Core.Model;
 using VirtoCommerce.CoreModule.Core.Currency;
 using VirtoCommerce.Datatrans.Core;
 using VirtoCommerce.Datatrans.Core.Models.External;
@@ -26,32 +25,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
     #region Overrides
 
-    public override ProcessPaymentRequestResult ProcessPayment(ProcessPaymentRequest request)
-    {
-        return ProcessPaymentAsync(request).GetAwaiter().GetResult();
-    }
-
-    public override PostProcessPaymentRequestResult PostProcessPayment(PostProcessPaymentRequest request)
-    {
-        return PostProcessPaymentAsync(request).GetAwaiter().GetResult();
-    }
-
-    public override VoidPaymentRequestResult VoidProcessPayment(VoidPaymentRequest request)
-    {
-        return VoidProcessPaymentAsync(request).GetAwaiter().GetResult();
-    }
-
-    public override CapturePaymentRequestResult CaptureProcessPayment(CapturePaymentRequest context)
-    {
-        return CaptureProcessPaymentAsync(context).GetAwaiter().GetResult();
-    }
-
-    public override RefundPaymentRequestResult RefundProcessPayment(RefundPaymentRequest context)
-    {
-        return RefundProcessPaymentAsync(context).GetAwaiter().GetResult();
-    }
-
-    public override ValidatePostProcessRequestResult ValidatePostProcessRequest(NameValueCollection queryString)
+    public override Task<ValidatePostProcessRequestResult> ValidatePostProcessRequestAsync(NameValueCollection queryString, CancellationToken cancellationToken = default)
     {
         var transactionId = queryString["transactionId"] ?? queryString["datatransTrxId"];
 
@@ -61,14 +35,14 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
             OuterId = transactionId,
         };
 
-        return result;
+        return Task.FromResult(result);
     }
 
     #endregion
 
     #region Protected async methods
 
-    protected virtual async Task<ProcessPaymentRequestResult> ProcessPaymentAsync(ProcessPaymentRequest request)
+    public override async Task<ProcessPaymentRequestResult> ProcessPaymentAsync(ProcessPaymentRequest request, CancellationToken cancellationToken = default)
     {
         var payment = (PaymentIn)request.Payment;
 
@@ -88,7 +62,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         return await CreateInitRequestResult(initResponse, request);
     }
 
-    protected virtual async Task<PostProcessPaymentRequestResult> PostProcessPaymentAsync(PostProcessPaymentRequest request, CancellationToken cancellationToken = default)
+    public override async Task<PostProcessPaymentRequestResult> PostProcessPaymentAsync(PostProcessPaymentRequest request, CancellationToken cancellationToken = default)
     {
         var transactionId = request.Parameters?.Get("transactionId")
             ?? request.Parameters?.Get("datatransTrxId");
@@ -120,7 +94,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         return result;
     }
 
-    protected virtual async Task<VoidPaymentRequestResult> VoidProcessPaymentAsync(VoidPaymentRequest request)
+    public override async Task<VoidPaymentRequestResult> VoidProcessPaymentAsync(VoidPaymentRequest request, CancellationToken cancellationToken = default)
     {
         var payment = (PaymentIn)request.Payment;
 
@@ -162,7 +136,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         };
     }
 
-    protected virtual async Task<CapturePaymentRequestResult> CaptureProcessPaymentAsync(CapturePaymentRequest context)
+    public override async Task<CapturePaymentRequestResult> CaptureProcessPaymentAsync(CapturePaymentRequest context, CancellationToken cancellationToken = default)
     {
         var payment = (PaymentIn)context.Payment;
         var transactionId = GetTransactionId(context);
@@ -230,7 +204,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         };
     }
 
-    protected virtual async Task<RefundPaymentRequestResult> RefundProcessPaymentAsync(RefundPaymentRequest context)
+    public override async Task<RefundPaymentRequestResult> RefundProcessPaymentAsync(RefundPaymentRequest context, CancellationToken cancellationToken = default)
     {
         var payment = (PaymentIn)context.Payment;
         var transactionId = GetTransactionId(context);
