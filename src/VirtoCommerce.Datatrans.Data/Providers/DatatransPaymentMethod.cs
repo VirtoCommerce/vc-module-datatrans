@@ -50,8 +50,8 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         var isLightbox = IsLightboxMode();
 
         var initResponse = isLightbox
-            ? await datatransClient.InitLightboxTransactionAsync(initRequest)
-            : await datatransClient.InitTransactionAsync(initRequest);
+            ? await datatransClient.InitLightboxTransactionAsync(initRequest, cancellationToken)
+            : await datatransClient.InitTransactionAsync(initRequest, cancellationToken);
 
         var success = initResponse.Error is null && !initResponse.TransactionId.IsNullOrEmpty();
 
@@ -117,11 +117,11 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         }
 
         var transactionId = GetTransactionId(request);
-        var response = await datatransClient.VoidAsync(transactionId);
+        var response = await datatransClient.VoidAsync(transactionId, cancellationToken);
 
         if (response.Error != null)
         {
-            var transaction = await datatransClient.GetTransactionAsync(transactionId);
+            var transaction = await datatransClient.GetTransactionAsync(transactionId, cancellationToken);
             payment.OuterId = transactionId;
             payment.PaymentStatus = ConvertStatus(transaction.Status);
         }
@@ -136,17 +136,17 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         };
     }
 
-    public override async Task<CapturePaymentRequestResult> CaptureProcessPaymentAsync(CapturePaymentRequest context, CancellationToken cancellationToken = default)
+    public override async Task<CapturePaymentRequestResult> CaptureProcessPaymentAsync(CapturePaymentRequest request, CancellationToken cancellationToken = default)
     {
-        var payment = (PaymentIn)context.Payment;
-        var transactionId = GetTransactionId(context);
+        var payment = (PaymentIn)request.Payment;
+        var transactionId = GetTransactionId(request);
 
-        var airlineData = context.Parameters?.Get("airlineData");
+        var airlineData = request.Parameters?.Get("airlineData");
 
         var alreadyCaptured = payment.Captures.Sum(x => x.Amount);
         var total = payment.Sum;
 
-        var amountToCapture = context.CaptureAmount ?? total - alreadyCaptured;
+        var amountToCapture = request.CaptureAmount ?? total - alreadyCaptured;
 
         if (amountToCapture <= 0m)
         {
@@ -158,7 +158,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
             };
         }
 
-        var transaction = await datatransClient.GetTransactionAsync(transactionId);
+        var transaction = await datatransClient.GetTransactionAsync(transactionId, cancellationToken);
         var amountMinor = await ToMinorUnits(payment.Currency, amountToCapture);
 
         var captureRequest = new DatatransCaptureRequest
@@ -169,13 +169,13 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
             AirlineData = airlineData
         };
 
-        var response = await datatransClient.CaptureAsync(transactionId, captureRequest);
+        var response = await datatransClient.CaptureAsync(transactionId, captureRequest, cancellationToken);
 
         payment.OuterId = transactionId;
 
         if (response.Error == null)
         {
-            transaction = await datatransClient.GetTransactionAsync(transactionId);
+            transaction = await datatransClient.GetTransactionAsync(transactionId, cancellationToken);
             payment.PaymentStatus = ConvertStatus(transaction.Status);
             payment.CapturedDate ??= DateTime.UtcNow;
 
@@ -204,10 +204,10 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         };
     }
 
-    public override async Task<RefundPaymentRequestResult> RefundProcessPaymentAsync(RefundPaymentRequest context, CancellationToken cancellationToken = default)
+    public override async Task<RefundPaymentRequestResult> RefundProcessPaymentAsync(RefundPaymentRequest request, CancellationToken cancellationToken = default)
     {
-        var payment = (PaymentIn)context.Payment;
-        var transactionId = GetTransactionId(context);
+        var payment = (PaymentIn)request.Payment;
+        var transactionId = GetTransactionId(request);
 
         if (!payment.CapturedDate.HasValue)
         {
@@ -227,7 +227,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
             };
         }
 
-        var amountToRefund = context.AmountToRefund;
+        var amountToRefund = request.AmountToRefund;
 
         if (amountToRefund <= 0m)
         {
@@ -238,21 +238,21 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
             };
         }
 
-        var transaction = await datatransClient.GetTransactionAsync(transactionId);
+        var transaction = await datatransClient.GetTransactionAsync(transactionId, cancellationToken);
         var amountMinor = await ToMinorUnits(payment.Currency, amountToRefund);
 
-        var request = new DatatransRefundRequest
+        var refundRequest = new DatatransRefundRequest
         {
             Amount = amountMinor,
             Currency = payment.Currency,
             Refno = transaction.Refno,
         };
 
-        var response = await datatransClient.RefundAsync(transactionId, request);
+        var response = await datatransClient.RefundAsync(transactionId, refundRequest, cancellationToken);
 
         if (response.Error == null)
         {
-            transaction = await datatransClient.GetTransactionAsync(transactionId);
+            transaction = await datatransClient.GetTransactionAsync(transactionId, cancellationToken);
             payment.PaymentStatus = ConvertStatus(transaction.Status);
         }
 
