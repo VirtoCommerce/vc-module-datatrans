@@ -284,7 +284,6 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
         result.Amount = await ToMinorUnits(currency, payment.Sum);
         result.Currency = currency;
-        result.Language = MapToDatatransLanguage(request.CultureName ?? store.DefaultLanguage);
 
         var returnUrl = Settings.GetValue<string>(ModuleConstants.Settings.General.ReturnUrl)
             .Replace("{orderId}", order.Id)
@@ -294,6 +293,12 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
         if (IsLightboxMode())
         {
+            // Lightbox accepts a `language` parameter; Secure Fields does not and returns
+            // "Unrecognized property: language" when present.
+            // Use EmptyToNull() so an empty CultureName falls back to the store default
+            // (matches the pattern used for Currency above).
+            result.Language = MapToDatatransLanguage(request.CultureName.EmptyToNull() ?? store.DefaultLanguage);
+
             // Lightbox uses redirect object instead of returnUrl/returnMethod
             result.Refno = order.Number ?? order.Id;
 
@@ -376,6 +381,15 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         return mode.EqualsIgnoreCase("Lightbox");
     }
 
+    // Datatrans-supported UI languages for Lightbox; any other value causes the API to return
+    // HTTP 400. See https://docs.datatrans.ch/docs/redirect-lightbox#language-support
+    private static readonly HashSet<string> _datatransLanguages = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "en", "de", "fr", "it", "es", "el", "no", "da", "pl", "pt",
+        "fi", "sv", "nl", "cs", "ja", "zh", "ru", "hu", "hr", "sr",
+        "sl", "tr", "ar", "ko",
+    };
+
     private static string MapToDatatransLanguage(string cultureName)
     {
         if (string.IsNullOrEmpty(cultureName))
@@ -383,7 +397,9 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
             return null;
         }
 
-        return cultureName.Split('-')[0].ToLowerInvariant();
+        var code = cultureName.Split('-')[0].ToLowerInvariant();
+
+        return _datatransLanguages.Contains(code) ? code : null;
     }
 
     private static string GetTransactionId(PaymentRequestBase context)

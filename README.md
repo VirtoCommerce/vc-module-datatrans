@@ -15,7 +15,7 @@ Both modes support 3-D Secure authentication, authorize/capture, void, and refun
 - Full payment lifecycle: authorize, capture, void, refund
 - Sandbox and production environments
 - 3-D Secure support
-- UI localization — error messages, labels, and SecureFields strings are rendered in the shopper's current culture via the Datatrans `language` parameter
+- UI localization for Lightbox — the popup is rendered in the shopper's current culture via the Datatrans `language` parameter
 
 ## Installation
 
@@ -102,11 +102,13 @@ For more details, see the [Datatrans Lightbox documentation](https://docs.datatr
 
 ## Localization
 
-Both Lightbox and Secure Fields localize their UI via the Datatrans `language` request parameter. See the [Datatrans language-support docs](https://docs.datatrans.ch/docs/redirect-lightbox#language-support) for the full list of supported codes.
+**Lightbox** localizes its UI via the Datatrans `language` request parameter on `POST /v1/transactions`. See the [Datatrans language-support docs](https://docs.datatrans.ch/docs/redirect-lightbox#language-support) for the full list of supported codes.
 
-### How the language is resolved
+**Secure Fields** does **not** accept `language` on `POST /v1/transactions/secureFields` — sending it yields `Unrecognized property: language`. Secure Fields localizes its inline iframes via the client-side JS library (`SecureFields.init({ language: "de", … })`); to switch the Secure Fields UI language, pass the culture through your frontend wrapper when it constructs the `SecureFields` instance.
 
-On every call to `ProcessPaymentAsync`, the module picks the language in this order:
+### How the Lightbox language is resolved
+
+On every call to `ProcessPaymentAsync` in Lightbox mode, the module picks the language in this order:
 
 1. **`ProcessPaymentRequest.CultureName`** — the shopper's culture, carried on `PaymentRequestBase` by the X-API payment mutations (`initializeCartPayment`, `initializePayment`, `authorizePayment`). The storefront passes this from `useLanguages().currentLanguage.value.cultureName`.
 2. **`Store.DefaultLanguage`** — fallback when the mutation caller did not pass `cultureName`.

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build:*)",
+      "Bash(grep -n 'globals\\\\.storeId\\\\|globals\\\\.cultureName\\\\|globals\\\\.$config\\\\|globals = {' C:/Projects/git/VirtoCommerce/vc-frontend/client-app/core/globals.ts)"
+    ]
+  }
+}
