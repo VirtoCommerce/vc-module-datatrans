@@ -381,13 +381,13 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         return mode.EqualsIgnoreCase("Lightbox");
     }
 
-    // Datatrans-supported UI languages for Lightbox; any other value causes the API to return
-    // HTTP 400. See https://docs.datatrans.ch/docs/redirect-lightbox#language-support
+    // Datatrans-supported UI languages for Redirect and Lightbox; any other value causes the
+    // API to return HTTP 400. See https://docs.datatrans.ch/docs/redirect-lightbox#language-support
+    // Supported: English, German, French, Italian, Spanish, Greek, Norwegian, Danish,
+    //            Polish, Portuguese, Russian, Japanese.
     private static readonly HashSet<string> _datatransLanguages = new(StringComparer.OrdinalIgnoreCase)
     {
-        "en", "de", "fr", "it", "es", "el", "no", "da", "pl", "pt",
-        "fi", "sv", "nl", "cs", "ja", "zh", "ru", "hu", "hr", "sr",
-        "sl", "tr", "ar", "ko",
+        "en", "de", "fr", "it", "es", "el", "no", "da", "pl", "pt", "ru", "ja",
     };
 
     private static string MapToDatatransLanguage(string cultureName)

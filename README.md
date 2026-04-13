@@ -118,11 +118,17 @@ On every call to `ProcessPaymentAsync` in Lightbox mode, the module picks the la
 
 Virto Commerce uses .NET culture names (e.g. `en-US`, `de-CH`). The module takes the 2-letter primary subtag and matches it against Datatrans's supported set:
 
-```
-en, de, fr, it, es, el, no, da, pl, pt,
-fi, sv, nl, cs, ja, zh, ru, hu, hr, sr,
-sl, tr, ar, ko
-```
+| Code | Language |   | Code | Language |
+|------|----------|---|------|----------|
+| `en` | English  |   | `da` | Danish   |
+| `de` | German   |   | `pl` | Polish   |
+| `fr` | French   |   | `pt` | Portuguese |
+| `it` | Italian  |   | `ru` | Russian  |
+| `es` | Spanish  |   | `ja` | Japanese |
+| `el` | Greek    |   |      |          |
+| `no` | Norwegian|   |      |          |
+
+If you need an additional language, Datatrans can add it on request — [contact Datatrans support](https://docs.datatrans.ch/docs/redirect-lightbox#language-support).
 
 Examples: `en-US` → `en`, `de-CH` → `de`, `fr-FR` → `fr`, `en-GB` → `en`. Unsupported cultures resolve to `null` → Datatrans default.
 
