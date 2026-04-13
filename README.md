@@ -15,6 +15,7 @@ Both modes support 3-D Secure authentication, authorize/capture, void, and refun
 - Full payment lifecycle: authorize, capture, void, refund
 - Sandbox and production environments
 - 3-D Secure support
+- UI localization — error messages, labels, and SecureFields strings are rendered in the shopper's current culture via the Datatrans `language` parameter
 
 ## Installation
 
@@ -99,6 +100,59 @@ In Lightbox mode, the customer clicks a "Pay" button and a Datatrans popup overl
 
 For more details, see the [Datatrans Lightbox documentation](https://docs.datatrans.ch/docs/redirect-lightbox).
 
+## Localization
+
+Both Lightbox and Secure Fields localize their UI via the Datatrans `language` request parameter. See the [Datatrans language-support docs](https://docs.datatrans.ch/docs/redirect-lightbox#language-support) for the full list of supported codes.
+
+### How the language is resolved
+
+On every call to `ProcessPaymentAsync`, the module picks the language in this order:
+
+1. **`ProcessPaymentRequest.CultureName`** — the shopper's culture, carried on `PaymentRequestBase` by the X-API payment mutations (`initializeCartPayment`, `initializePayment`, `authorizePayment`). The storefront passes this from `useLanguages().currentLanguage.value.cultureName`.
+2. **`Store.DefaultLanguage`** — fallback when the mutation caller did not pass `cultureName`.
+3. **Omitted** — if the resolved culture is empty or maps to an unsupported code, the `language` field is stripped from the Datatrans payload and the gateway renders in its own default (English). No wire change occurs for deployments that never pass a culture.
+
+### Culture-to-Datatrans mapping
+
+Virto Commerce uses .NET culture names (e.g. `en-US`, `de-CH`). The module takes the 2-letter primary subtag and matches it against Datatrans's supported set:
+
+```
+en, de, fr, it, es, el, no, da, pl, pt,
+fi, sv, nl, cs, ja, zh, ru, hu, hr, sr,
+sl, tr, ar, ko
+```
+
+Examples: `en-US` → `en`, `de-CH` → `de`, `fr-FR` → `fr`, `en-GB` → `en`. Unsupported cultures resolve to `null` → Datatrans default.
+
+### Overriding the mapping
+
+`DatatransPaymentMethod.CreateInitRequest` is `protected virtual` and sets `result.Language` from `request.CultureName`. Override the method in a derived payment method if you need different culture logic (e.g. force a specific language, support a non-standard locale, or fall back to a configured default).
+
+### Calling the mutations with a culture
+
+```graphql
+mutation InitializeCartPayment($command: InputInitializeCartPaymentType!) {
+  initializeCartPayment(command: $command) {
+    isSuccess
+    paymentActionType
+    publicParameters { key value }
+  }
+}
+```
+
+```json
+{
+  "command": {
+    "cartId": "…",
+    "paymentId": "…",
+    "storeId": "…",
+    "cultureName": "de-CH"
+  }
+}
+```
+
+`storeId` is optional; when provided, X-API verifies it matches the cart/order store and throws otherwise. `cultureName` is optional and falls back to the store's default language.
+
 ## Frontend Integration
 
 The module includes Vue.js components for the Virto Commerce Frontend application:
@@ -113,6 +167,7 @@ The frontend automatically detects the payment mode from the backend configurati
 * [Datatrans Introduction](https://docs.datatrans.ch/docs/introduction)
 * [Lightbox mode](https://docs.datatrans.ch/docs/redirect-lightbox)
 * [Secure Fields mode](https://docs.datatrans.ch/docs/redirect-lightbox)
+* [Language support](https://docs.datatrans.ch/docs/redirect-lightbox#language-support)
 
 ## License
 

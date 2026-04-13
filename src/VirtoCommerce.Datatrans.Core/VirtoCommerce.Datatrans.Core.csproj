@@ -9,7 +9,7 @@
   <ItemGroup>
     
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="VirtoCommerce.PaymentModule.Core" Version="3.1000.0" />
+    <PackageReference Include="VirtoCommerce.PaymentModule.Core" Version="3.1002.0-alpha.272-vcst-4893-payment-localization" />
     <PackageReference Include="VirtoCommerce.StoreModule.Core" Version="3.1000.0" />
     <PackageReference Include="VirtoCommerce.OrdersModule.Core" Version="3.1000.0" />
     <PackageReference Include="VirtoCommerce.Platform.Core" Version="3.1002.0" />

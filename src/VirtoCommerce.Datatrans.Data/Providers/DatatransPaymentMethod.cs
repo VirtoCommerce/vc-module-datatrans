@@ -284,6 +284,7 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
         result.Amount = await ToMinorUnits(currency, payment.Sum);
         result.Currency = currency;
+        result.Language = MapToDatatransLanguage(request.CultureName ?? store.DefaultLanguage);
 
         var returnUrl = Settings.GetValue<string>(ModuleConstants.Settings.General.ReturnUrl)
             .Replace("{orderId}", order.Id)
@@ -373,6 +374,16 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
     {
         var mode = Settings.GetValue<string>(ModuleConstants.Settings.General.PaymentMode);
         return mode.EqualsIgnoreCase("Lightbox");
+    }
+
+    private static string MapToDatatransLanguage(string cultureName)
+    {
+        if (string.IsNullOrEmpty(cultureName))
+        {
+            return null;
+        }
+
+        return cultureName.Split('-')[0].ToLowerInvariant();
     }
 
     private static string GetTransactionId(PaymentRequestBase context)
