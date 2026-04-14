@@ -390,6 +390,14 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         "en", "de", "fr", "it", "es", "el", "no", "da", "pl", "pt", "ru", "ja",
     };
 
+    // .NET culture subtags that map to a different Datatrans language code.
+    // Norwegian: .NET uses "nb" (Bokmål) and "nn" (Nynorsk); Datatrans expects "no".
+    private static readonly Dictionary<string, string> _languageAliases = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["nb"] = "no",
+        ["nn"] = "no",
+    };
+
     private static string MapToDatatransLanguage(string cultureName)
     {
         if (string.IsNullOrEmpty(cultureName))
@@ -398,6 +406,11 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
         }
 
         var code = cultureName.Split('-')[0].ToLowerInvariant();
+
+        if (_languageAliases.TryGetValue(code, out var alias))
+        {
+            code = alias;
+        }
 
         return _datatransLanguages.Contains(code) ? code : null;
     }
