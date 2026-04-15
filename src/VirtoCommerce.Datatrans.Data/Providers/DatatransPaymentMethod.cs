@@ -293,6 +293,12 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
 
         if (IsLightboxMode())
         {
+            // Lightbox accepts a `language` parameter; Secure Fields does not and returns
+            // "Unrecognized property: language" when present.
+            // Use EmptyToNull() so an empty CultureName falls back to the store default
+            // (matches the pattern used for Currency above).
+            result.Language = MapToDatatransLanguage(request.CultureName.EmptyToNull() ?? store.DefaultLanguage);
+
             // Lightbox uses redirect object instead of returnUrl/returnMethod
             result.Refno = order.Number ?? order.Id;
 
@@ -373,6 +379,40 @@ public class DatatransPaymentMethod(IDatatransClient datatransClient, ICurrencyS
     {
         var mode = Settings.GetValue<string>(ModuleConstants.Settings.General.PaymentMode);
         return mode.EqualsIgnoreCase("Lightbox");
+    }
+
+    // Datatrans-supported UI languages for Redirect and Lightbox; any other value causes the
+    // API to return HTTP 400. See https://docs.datatrans.ch/docs/redirect-lightbox#language-support
+    // Supported: English, German, French, Italian, Spanish, Greek, Norwegian, Danish,
+    //            Polish, Portuguese, Russian, Japanese.
+    private static readonly HashSet<string> _datatransLanguages = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "en", "de", "fr", "it", "es", "el", "no", "da", "pl", "pt", "ru", "ja",
+    };
+
+    // .NET culture subtags that map to a different Datatrans language code.
+    // Norwegian: .NET uses "nb" (Bokmål) and "nn" (Nynorsk); Datatrans expects "no".
+    private static readonly Dictionary<string, string> _languageAliases = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["nb"] = "no",
+        ["nn"] = "no",
+    };
+
+    private static string MapToDatatransLanguage(string cultureName)
+    {
+        if (string.IsNullOrEmpty(cultureName))
+        {
+            return null;
+        }
+
+        var code = cultureName.Split('-')[0].ToLowerInvariant();
+
+        if (_languageAliases.TryGetValue(code, out var alias))
+        {
+            code = alias;
+        }
+
+        return _datatransLanguages.Contains(code) ? code : null;
     }
 
     private static string GetTransactionId(PaymentRequestBase context)
