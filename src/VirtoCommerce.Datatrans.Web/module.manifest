@@ -22,7 +22,7 @@
   </owners>
 
   <projectUrl>https://github.com/VirtoCommerce/vc-module-datatrans</projectUrl>
-  <iconUrl>Modules/$(VirtoCommerce.Datatrans)/Content/logo.png</iconUrl>
+  <iconUrl>Modules/$(VirtoCommerce.Datatrans)/Content/logo.svg</iconUrl>
   <requireLicenseAcceptance>false</requireLicenseAcceptance>
 
   <assemblyFile>VirtoCommerce.Datatrans.Web.dll</assemblyFile>
